@@ -1,9 +1,14 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Card from '../components/Card/Card'
 import Button from '../components/Button/Button'
 
 export default function Home() {
+  const navigate = useNavigate()
+  const startRegister = () => {
+    navigate('/register')
+  }
+  
   return (
     <div className="flex items-center justify-center">
       <Card title="Welcome to Coderhouse" icon="logo">
@@ -13,7 +18,7 @@ export default function Home() {
             to make sure nothing breaks.
           </p>
           <div>
-            <Button text="Get your username"/>
+            <Button onClick={startRegister} text="Get your username"/>
           </div>
           <div className="mt-4">
             <span className="text-[#0077ff]">Have an invite text?</span>
