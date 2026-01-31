@@ -5,6 +5,8 @@ import Authenticate from './pages/Authenticate/Authenticate'
 import GuestRoute from './routes/GuestRoute'
 import SemiProtectedRoute from './routes/SemiProtectedRoute'
 import Activate from './pages/Activate/Activate'
+import ProtectedRoute from './routes/ProtectedRoute'
+import Rooms from './pages/Rooms/Rooms'
 
 function App() {
   return (
@@ -17,6 +19,9 @@ function App() {
         </Route>
         <Route element={<SemiProtectedRoute />}>
           <Route path="/activate" element={<Activate />} />
+        </Route>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/rooms" element={<Rooms />} />
         </Route>
         {/* <Route path="/" element={
           <GuestRoute>
