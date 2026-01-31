@@ -6,7 +6,7 @@ import Button from '../components/Button/Button'
 export default function Home() {
   const navigate = useNavigate()
   const startRegister = () => {
-    navigate('/register')
+    navigate('/authenticate')
   }
   
   return (
@@ -18,11 +18,10 @@ export default function Home() {
             to make sure nothing breaks.
           </p>
           <div>
-            <Button onClick={startRegister} text="Get your username"/>
+            <Button onClick={startRegister} text="Let's Go"/>
           </div>
           <div className="mt-4">
             <span className="text-[#0077ff]">Have an invite text?</span>
-            <Link to="/login" className="text-[#0077ff] ml-2 font-medium">Sign in</Link>
           </div>
       </Card>
     </div>
