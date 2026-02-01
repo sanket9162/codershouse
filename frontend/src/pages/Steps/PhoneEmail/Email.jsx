@@ -1,8 +1,20 @@
-import React from 'react'
+import React, { useState } from 'react'
+import Button from '../../../components/Button/Button'
+import Card from '../../../components/Card/Card'
+import TextInput from '../../../components/Textinput/TextInput'
 
 const Email = () => {
+  const [email, setEmail] = useState('')
   return (
-    <div>Email</div>
+    <Card title="Enter Email Address" icon="email-emoji">
+      <TextInput value={email} onChange={(e) => setEmail(e.target.value)} />
+      <div className='flex flex-col items-center justify-center'>
+        <div className='mt-2'>
+          <Button text="Next" />
+        </div>
+        <p className='w-4/5 text-sm mt-4 text-gray-400'>By entering your number, you&apos;re agreeing to our Terms of Service and Privacy Policy</p>
+      </div>
+    </Card>
   )
 }
 
