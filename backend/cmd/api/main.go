@@ -5,11 +5,15 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/sanket9162/codershouse/internal/config"
 )
 
-type application struct{}
+type application struct {
+	config *config.Config
+}
 
 func main() {
+	cfg := config.LoadConfig()
 
 	router := chi.NewRouter()
 
@@ -17,7 +21,7 @@ func main() {
 		w.Write([]byte("Hello World"))
 	})
 
-	fmt.Println("Starting server on part 8080")
+	fmt.Println("Starting server on part " + cfg.Port)
 
-	http.ListenAndServe(":8080", router)
+	http.ListenAndServe(":"+cfg.Port, router)
 }
