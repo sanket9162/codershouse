@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	Domain string
-	Port   string
+	Domain    string
+	Port      string
+	SecretKey string
 }
 
 func LoadConfig() *Config {
@@ -22,6 +23,7 @@ func LoadConfig() *Config {
 
 	cfg.Domain = os.Getenv("DOMAIN")
 	cfg.Port = os.Getenv("PORT")
+	cfg.SecretKey = os.Getenv("SECRET_KEY")
 
 	return &cfg
 
