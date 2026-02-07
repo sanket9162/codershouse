@@ -8,9 +8,12 @@ import (
 )
 
 type Config struct {
-	Domain    string
-	Port      string
-	SecretKey string
+	Domain      string
+	Port        string
+	SecretKey   string
+	TwilioSID   string
+	TwilioToken string
+	TwilioPhone string
 }
 
 func LoadConfig() *Config {
@@ -23,7 +26,10 @@ func LoadConfig() *Config {
 
 	cfg.Domain = os.Getenv("DOMAIN")
 	cfg.Port = os.Getenv("PORT")
-	cfg.SecretKey = os.Getenv("SECRET_KEY")
+	cfg.SecretKey = os.Getenv("KEY")
+	cfg.TwilioSID = os.Getenv("TWILIO_SID")
+	cfg.TwilioToken = os.Getenv("TWILIO_TOKEN")
+	cfg.TwilioPhone = os.Getenv("TWILIO_PHONE")
 
 	return &cfg
 
