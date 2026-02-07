@@ -9,6 +9,8 @@ import (
 
 	"github.com/sanket9162/codershouse/internal/config"
 	"github.com/sanket9162/codershouse/internal/utils"
+	"github.com/twilio/twilio-go"
+	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
 )
 
 type Handler struct {
@@ -24,7 +26,7 @@ func NewHandler(app *config.Config, logger *slog.Logger) *Handler {
 }
 
 type SendOTPRequest struct {
-	Phone string `json:"phone" validate:"required,numeric,len=10"`
+	Phone string `json:"phone" validate:"required,e164"`
 }
 
 func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
@@ -50,14 +52,28 @@ func (h *Handler) SendOTP(w http.ResponseWriter, r *http.Request) {
 	otp := rand.Intn(9999)
 
 	// Expiry time 5 minutes
-	expiresAt := time.Now().Add(5 * time.Minute)
+	expiresAt := time.Now().Add(5 * time.Minute).Unix()
 
 	// create data string
-	data := fmt.Sprintf("%s.%s.%d", req.Phone, otp, expiresAt)
+	data := fmt.Sprintf("%s.%d.%d", req.Phone, otp, expiresAt)
 
 	// encrypt data
 	hash := utils.Encrypt(data, h.App.SecretKey)
+
+	// send OTP using twilio
+	client := twilio.NewRestClientWithParams(twilio.ClientParams{
+		Username: h.App.TwilioSID,
+		Password: h.App.TwilioToken,
+	})
+
+	params := &twilioApi.CreateMessageParams{}
+	params.SetTo(req.Phone)
+	params.SetFrom(h.App.TwilioPhone)
+	params.SetBody(fmt.Sprintf("Your coder's house OTP is %d ", otp))
+
+	_, err = client.Api.CreateMessage(params)
 	if err != nil {
+		h.Logger.Error("Error sending OTP", "error", err)
 		utils.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
 	}
