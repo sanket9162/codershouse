@@ -14,6 +14,8 @@ type Config struct {
 	TwilioSID   string
 	TwilioToken string
 	TwilioPhone string
+	DBUri       string
+	DBName      string
 }
 
 func LoadConfig() *Config {
@@ -29,7 +31,9 @@ func LoadConfig() *Config {
 	cfg.SecretKey = os.Getenv("KEY")
 	cfg.TwilioSID = os.Getenv("TWILIO_SID")
 	cfg.TwilioToken = os.Getenv("TWILIO_TOKEN")
-	cfg.TwilioPhone = os.Getenv("TWILIO_PHONE")
+	cfg.TwilioPhone = os.Getenv("TWILIO_PHONE_NUMBER")
+	cfg.DBUri = os.Getenv("DB_URL")
+	cfg.DBName = os.Getenv("DB_NAME")
 
 	return &cfg
 
