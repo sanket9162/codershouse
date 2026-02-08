@@ -2,16 +2,17 @@ package dbrepo
 
 import (
 	"github.com/sanket9162/codershouse/internal/config"
+	"github.com/sanket9162/codershouse/internal/repository"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type MonogRepo struct {
+type MongoRepo struct {
 	App *config.Config
 	DB  *mongo.Database
 }
 
-func NewMonogRepo(app *config.Config, db *mongo.Database) *MonogRepo {
-	return &MonogRepo{
+func NewMongoRepo(app *config.Config, db *mongo.Database) repository.DatabaseRepo {
+	return &MongoRepo{
 		App: app,
 		DB:  db,
 	}

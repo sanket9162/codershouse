@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/sanket9162/codershouse/internal/config"
+	"github.com/sanket9162/codershouse/internal/repository"
 	"github.com/sanket9162/codershouse/internal/utils"
 	"github.com/twilio/twilio-go"
 	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
@@ -18,12 +19,14 @@ import (
 type Handler struct {
 	App    *config.Config
 	Logger *slog.Logger
+	DB     repository.DatabaseRepo
 }
 
-func NewHandler(app *config.Config, logger *slog.Logger) *Handler {
+func NewHandler(app *config.Config, logger *slog.Logger, db repository.DatabaseRepo) *Handler {
 	return &Handler{
 		App:    app,
 		Logger: logger,
+		DB:     db,
 	}
 }
 
