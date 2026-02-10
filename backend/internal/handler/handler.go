@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/sanket9162/codershouse/internal/config"
+	"github.com/sanket9162/codershouse/internal/models"
 	"github.com/sanket9162/codershouse/internal/repository"
 	"github.com/sanket9162/codershouse/internal/utils"
 	"github.com/twilio/twilio-go"
@@ -136,6 +137,17 @@ func (h *Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 
 	if req.Hash != hash {
 		utils.ErrorJSON(w, errors.New("invalid otp"), http.StatusBadRequest)
+		return
+	}
+
+	// create user
+	user := &models.User{
+		Phone:     req.Phone,
+		Activated: true,
+	}
+
+	if err := h.DB.CreateUser(user); err != nil {
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
 	}
 
