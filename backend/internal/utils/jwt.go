@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -117,4 +118,25 @@ func (j *Auth) GetTokenFromHeader(r *http.Request) (string, error) {
 	}
 
 	return headerParts[1], nil
+}
+
+func (j *Auth) ValidateToken(tokenString string) (*Claims, error) {
+	claims := &Claims{}
+
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(j.Secret), nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !token.Valid || claims.Issuer != j.Issuer {
+		return nil, errors.New("invalid token")
+	}
+
+	return claims, nil
 }
