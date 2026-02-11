@@ -38,8 +38,15 @@ func (j *Auth) generateTokenPair(user *JwtUser) (TokenPair, error) {
 		return TokenPair{}, err
 	}
 
+	// 2. Generate refresh token
+	refreshToken, err := j.generateToken(user, j.RefreshExpiry)
+	if err != nil {
+		return TokenPair{}, err
+	}
+
 	return TokenPair{
-		Token: accessToken,
+		Token:        accessToken,
+		RefreshToken: refreshToken,
 	}, nil
 }
 
