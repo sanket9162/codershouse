@@ -35,7 +35,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func (j *Auth) generateTokenPair(user *JwtUser) (TokenPair, error) {
+func (j *Auth) GenerateTokenPair(user *JwtUser) (TokenPair, error) {
 	// 1.Generate acces token
 	accessToken, err := j.generateToken(user, j.TokenExpiry)
 	if err != nil {
@@ -109,7 +109,7 @@ func (j *Auth) GetExpiredRefreshCookie() *http.Cookie {
 func (j *Auth) GetTokenFromHeader(r *http.Request) (string, error) {
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
-		return "", errors.New("no aith header")
+		return "", errors.New("no auth header")
 	}
 
 	headerParts := strings.Split(authHeader, " ")
