@@ -30,3 +30,39 @@ type Claims struct {
 	ID string `json:"id"`
 	jwt.RegisteredClaims
 }
+
+func (j *Auth) generateTokenPair(user *JwtUser) (TokenPair, error) {
+	// 1.Generate acces token
+	accessToken, err := j.generateToken(user, j.TokenExpiry)
+	if err != nil {
+		return TokenPair{}, err
+	}
+
+	return TokenPair{
+		Token: accessToken,
+	}, nil
+}
+
+func (j *Auth) generateToken(user *JwtUser, ttl time.Duration) (string, error) {
+	// Creaet claims
+	claims := Claims{
+		ID: user.ID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Audience:  jwt.ClaimStrings{j.Audience},
+			Issuer:    j.Issuer,
+			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(ttl)),
+		},
+	}
+
+	// Create a token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Create a signed token
+	signedToken, err := token.SignedString([]byte(j.Secret))
+	if err != nil {
+		return "", err
+	}
+
+	return signedToken, nil
+}
