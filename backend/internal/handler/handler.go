@@ -140,15 +140,18 @@ func (h *Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// create user
-	user := &models.User{
-		Phone:     req.Phone,
-		Activated: true,
-	}
+	// check if user exists
+	_, err := h.DB.GetUserByPhone(req.Phone)
+	if err != nil {
+		user := &models.User{
+			Phone:     req.Phone,
+			Activated: true,
+		}
 
-	if err := h.DB.CreateUser(user); err != nil {
-		utils.ErrorJSON(w, err, http.StatusInternalServerError)
-		return
+		if err := h.DB.CreateUser(user); err != nil {
+			utils.ErrorJSON(w, err, http.StatusInternalServerError)
+			return
+		}
 	}
 
 	response := map[string]any{
