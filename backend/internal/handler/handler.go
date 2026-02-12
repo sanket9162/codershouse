@@ -141,9 +141,9 @@ func (h *Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check if user exists
-	_, err := h.DB.GetUserByPhone(req.Phone)
+	user, err := h.DB.GetUserByPhone(req.Phone)
 	if err != nil {
-		user := &models.User{
+		user = &models.User{
 			Phone:     req.Phone,
 			Activated: true,
 			CreatedAt: time.Now(),
@@ -154,11 +154,34 @@ func (h *Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorJSON(w, err, http.StatusInternalServerError)
 			return
 		}
+
+		// fetch user again to get ID
+		user, err = h.DB.GetUserByPhone(req.Phone)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusInternalServerError)
+			return
+		}
 	}
 
+	// generate tokens
+	jwtUser := &utils.JwtUser{
+		ID: user.ID.Hex(),
+	}
+
+	tokens, err := h.App.Auth.GenerateTokenPair(jwtUser)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	// set refresh cookie
+	refreshCookie := h.App.Auth.GetRefreshCookie(tokens.RefreshToken)
+	http.SetCookie(w, refreshCookie)
+
 	response := map[string]any{
-		"message": "OTP verified successfully",
-		"status":  http.StatusOK,
+		"message":      "OTP verified successfully",
+		"access_token": tokens.Token,
+		"user":         user,
 	}
 
 	utils.WriteJSON(w, http.StatusOK, response)
