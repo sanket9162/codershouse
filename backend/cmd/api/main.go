@@ -9,13 +9,15 @@ import (
 	"github.com/sanket9162/codershouse/internal/config"
 	"github.com/sanket9162/codershouse/internal/database"
 	"github.com/sanket9162/codershouse/internal/handler"
+	"github.com/sanket9162/codershouse/internal/middleware"
 	"github.com/sanket9162/codershouse/internal/repository/dbrepo"
 )
 
 type application struct {
-	config  *config.Config
-	logger  *slog.Logger
-	handler *handler.Handler
+	config     *config.Config
+	logger     *slog.Logger
+	handler    *handler.Handler
+	middleware *middleware.Middleware
 }
 
 func main() {
@@ -45,11 +47,13 @@ func main() {
 	repo := dbrepo.NewMongoRepo(cfg, database)
 
 	h := handler.NewHandler(cfg, logger, repo)
+	m := middleware.NewMiddleware(cfg, logger)
 
 	app := &application{
-		config:  cfg,
-		logger:  logger,
-		handler: h,
+		config:     cfg,
+		logger:     logger,
+		handler:    h,
+		middleware: m,
 	}
 
 	if err = app.serve(); err != nil {
