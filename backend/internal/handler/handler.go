@@ -13,8 +13,6 @@ import (
 	"github.com/sanket9162/codershouse/internal/models"
 	"github.com/sanket9162/codershouse/internal/repository"
 	"github.com/sanket9162/codershouse/internal/utils"
-	"github.com/twilio/twilio-go"
-	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
 )
 
 type Handler struct {
@@ -36,7 +34,7 @@ type SendOTPRequest struct {
 }
 
 type VerifyOTPRequest struct {
-	Phone     string `json:"Phone" validate:"required,e164"`
+	Phone     string `json:"phone" validate:"required,e164"`
 	OTP       string `json:"otp" validate:"required,numeric,len=4"`
 	Hash      string `json:"hash" validate:"required"`
 	ExpiresAt int64  `json:"expiresAt" validate:"required"`
@@ -75,22 +73,22 @@ func (h *Handler) SendOTP(w http.ResponseWriter, r *http.Request) {
 	hash := utils.Encrypt(data, h.App.SecretKey)
 
 	// send OTP using twilio
-	client := twilio.NewRestClientWithParams(twilio.ClientParams{
-		Username: h.App.TwilioSID,
-		Password: h.App.TwilioToken,
-	})
+	// client := twilio.NewRestClientWithParams(twilio.ClientParams{
+	// 	Username: h.App.TwilioSID,
+	// 	Password: h.App.TwilioToken,
+	// })
 
-	params := &twilioApi.CreateMessageParams{}
-	params.SetTo(req.Phone)
-	params.SetFrom(h.App.TwilioPhone)
-	params.SetBody(fmt.Sprintf("Your coder's house OTP is %d ", otp))
+	// params := &twilioApi.CreateMessageParams{}
+	// params.SetTo(req.Phone)
+	// params.SetFrom(h.App.TwilioPhone)
+	// params.SetBody(fmt.Sprintf("Your coder's house OTP is %d ", otp))
 
-	_, err = client.Api.CreateMessage(params)
-	if err != nil {
-		h.Logger.Error("Error sending OTP", "error", err)
-		utils.ErrorJSON(w, err, http.StatusInternalServerError)
-		return
-	}
+	// _, err = client.Api.CreateMessage(params)
+	// if err != nil {
+	// 	h.Logger.Error("Error sending OTP", "error", err)
+	// 	utils.ErrorJSON(w, err, http.StatusInternalServerError)
+	// 	return
+	// }
 
 	h.Logger.Info("OTP Generate,", "otp", otp, "phone", req.Phone)
 
@@ -114,6 +112,7 @@ func (h *Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 	// validate struct
 	if err := utils.ValidateStruct(req); err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
 
 	// check expiry
@@ -181,7 +180,9 @@ func (h *Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 	response := map[string]any{
 		"message":      "OTP verified successfully",
 		"access_token": tokens.Token,
-		"user":         user,
+		"userID":       user.ID.Hex(),
+		"phone":        user.Phone,
+		"activated":    user.Activated,
 	}
 
 	utils.WriteJSON(w, http.StatusOK, response)
