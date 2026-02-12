@@ -12,4 +12,8 @@ export const sendOTP = (phone) => {
     return api.post("/send-otp", { phone });
 }
 
+export const verifyOTP = (phone, otp, hash, expiresAt) => {
+    return api.post("/verify-otp", { phone, otp, hash, expiresAt });
+}
+
 export default api;
