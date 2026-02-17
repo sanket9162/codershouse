@@ -18,7 +18,6 @@ type Auth struct {
 	RefreshExpiry time.Duration
 	CookieDomain  string
 	CookiePath    string
-	CookieName    string
 }
 
 type JwtUser struct {
@@ -80,21 +79,49 @@ func (j *Auth) generateToken(user *JwtUser, ttl time.Duration) (string, error) {
 
 func (j *Auth) GetRefreshCookie(refreshToken string) *http.Cookie {
 	return &http.Cookie{
-		Name:     j.CookieName,
+		Name:     "refresh_token",
 		Path:     j.CookiePath,
 		Value:    refreshToken,
 		Expires:  time.Now().UTC().Add(j.RefreshExpiry),
 		MaxAge:   int(j.RefreshExpiry.Seconds()),
 		Domain:   j.CookieDomain,
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
+	}
+}
+
+func (j *Auth) GetAccessTokenCookie(accessToken string) *http.Cookie {
+	return &http.Cookie{
+		Name:     "access_token",
+		Path:     j.CookiePath,
+		Value:    accessToken,
+		Expires:  time.Now().UTC().Add(j.TokenExpiry),
+		MaxAge:   int(j.TokenExpiry.Seconds()),
+		Domain:   j.CookieDomain,
+		HttpOnly: true,
+		Secure:   false, // Set to false for dev
+		SameSite: http.SameSiteLaxMode,
+	}
+}
+
+func (j *Auth) GetExpiredAccessTokenCookie() *http.Cookie {
+	return &http.Cookie{
+		Name:     "access_token",
+		Path:     j.CookiePath,
+		Value:    "",
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+		SameSite: http.SameSiteStrictMode,
+		Domain:   j.CookieDomain,
+		HttpOnly: true,
+		Secure:   false, // Set to false for dev
 	}
 }
 
 func (j *Auth) GetExpiredRefreshCookie() *http.Cookie {
 	return &http.Cookie{
-		Name:     j.CookieName,
+		Name:     "refresh_token",
 		Path:     j.CookiePath,
 		Value:    "",
 		Expires:  time.Unix(0, 0),

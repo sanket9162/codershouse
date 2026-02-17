@@ -47,7 +47,6 @@ func LoadConfig() *Config {
 		RefreshExpiry: time.Hour * 24 * 7,
 		CookieDomain:  os.Getenv("COOKIE_DOMAIN"),
 		CookiePath:    os.Getenv("COOKIE_PATH"),
-		CookieName:    os.Getenv("COOKIE_NAME"),
 	}
 
 	return &cfg

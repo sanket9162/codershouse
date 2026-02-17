@@ -173,6 +173,10 @@ func (h *Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// set access cookie
+	accessCookie := h.App.Auth.GetAccessTokenCookie(tokens.Token)
+	http.SetCookie(w, accessCookie)
+
 	// set refresh cookie
 	refreshCookie := h.App.Auth.GetRefreshCookie(tokens.RefreshToken)
 	http.SetCookie(w, refreshCookie)
