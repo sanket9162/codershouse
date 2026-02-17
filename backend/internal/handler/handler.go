@@ -144,7 +144,7 @@ func (h *Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		user = &models.User{
 			Phone:     req.Phone,
-			Activated: true,
+			Activated: false,
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		}
