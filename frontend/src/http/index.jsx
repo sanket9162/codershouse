@@ -17,4 +17,8 @@ export const verifyOTP = (phone, otp, hash, expiresAt) => {
     return api.post("/verify-otp", { phone, otp, hash, expiresAt });
 }
 
+export const activateUser = (name, avatar) => {
+    return api.post("/activate", { name, avatar });
+}
+
 export default api;

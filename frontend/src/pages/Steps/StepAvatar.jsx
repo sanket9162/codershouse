@@ -3,10 +3,11 @@ import Button from '../../components/Button/Button'
 import Card from '../../components/Card/Card'
 import { useSelector, useDispatch } from 'react-redux'
 import { setAvatar } from '../../store/activateSlice'
+import { activateUser } from '../../http'
 
 const StepAvatar = ({ onNext }) => {
   const dispatch = useDispatch();
-  const { name } = useSelector(state => state.activate)
+  const { name, avatar } = useSelector(state => state.activate)
   const [image, setImage] = useState('/images/monkey-avatar.png')
   function captureImage(e) {
     const file = e.target.files[0];
@@ -18,7 +19,15 @@ const StepAvatar = ({ onNext }) => {
 
     }
   }
-  function submit() { }
+
+  async function submit() {
+    try {
+      const response = await activateUser(name, avatar);
+      console.log(response);
+    } catch (err) {
+      console.log(err);
+    }
+  }
   return (
     <>
       <div className='flex flex-col items-center justify-center'>
