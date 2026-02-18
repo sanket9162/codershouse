@@ -15,5 +15,10 @@ func (app *application) routes() http.Handler {
 	router.Post("/send-otp", app.handler.SendOTP)
 	router.Post("/verify-otp", app.handler.VerifyOTP)
 
+	router.Group(func(r chi.Router) {
+		r.Use(app.middleware.AuthMiddleware)
+		r.Post("/activate", app.handler.ActivateUser)
+	})
+
 	return router
 }

@@ -192,3 +192,7 @@ func (h *Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, response)
 
 }
+
+func (h *Handler) ActivateUser(w http.ResponseWriter, r *http.Request) {
+
+}
