@@ -40,6 +40,11 @@ type VerifyOTPRequest struct {
 	ExpiresAt int64  `json:"expiresAt" validate:"required"`
 }
 
+type ActivateRequest struct {
+	Name   string `json:"name" validate:"required"`
+	Avatar string `json:"avatar" validate:"required"`
+}
+
 func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello from codershouse"))
 }

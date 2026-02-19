@@ -12,4 +12,6 @@ type User struct {
 	Activated bool          `json:"activated" bson:"activated"`
 	CreatedAt time.Time     `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time     `json:"updated_at" bson:"updated_at"`
+	Name      string        `json:"name" bson:"name"`
+	Avatar    string        `json:"avatar" bson:"avatar"`
 }
