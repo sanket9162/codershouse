@@ -43,7 +43,7 @@ type VerifyOTPRequest struct {
 
 type ActivateRequest struct {
 	Name   string `json:"name" validate:"required"`
-	Avatar string `json:"avatar" validate:"required"`
+	Avatar string `json:"avatar" validate:""`
 }
 
 func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
@@ -211,6 +211,7 @@ func (h *Handler) ActivateUser(w http.ResponseWriter, r *http.Request) {
 	var req ActivateRequest
 	if err := utils.ReadJSON(w, r, &req); err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
 
 	// validate
@@ -220,10 +221,16 @@ func (h *Handler) ActivateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// process image
-	avatarPath, err := utils.SaveProfileImage(req.Avatar)
-	if err != nil {
-		utils.ErrorJSON(w, errors.New("could not save image"), http.StatusInternalServerError)
-		return
+	var avatarPath string
+	if req.Avatar != "" {
+		var err error
+		avatarPath, err = utils.SaveProfileImage(req.Avatar)
+		if err != nil {
+			utils.ErrorJSON(w, errors.New("could not save image"), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		avatarPath = "/images/monkey-avatar.png"
 	}
 
 	// Update user
@@ -242,10 +249,10 @@ func (h *Handler) ActivateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Response
 	response := map[string]any{
 		"message": "User activated successfully",
 		"user":    user,
+		"auth":    true,
 	}
 
 	utils.WriteJSON(w, http.StatusOK, response)
