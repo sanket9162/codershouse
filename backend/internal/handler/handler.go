@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/sanket9162/codershouse/internal/config"
+	"github.com/sanket9162/codershouse/internal/middleware"
 	"github.com/sanket9162/codershouse/internal/models"
 	"github.com/sanket9162/codershouse/internal/repository"
 	"github.com/sanket9162/codershouse/internal/utils"
@@ -200,7 +201,7 @@ func (h *Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) ActivateUser(w http.ResponseWriter, r *http.Request) {
 	// get user id from context
-	userID, ok := r.Context().Value("userID").(string)
+	userID, ok := r.Context().Value(middleware.UserKey).(string)
 	if !ok {
 		utils.ErrorJSON(w, errors.New("unauthorized"), http.StatusUnauthorized)
 		return
