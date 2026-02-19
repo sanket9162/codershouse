@@ -220,6 +220,11 @@ func (h *Handler) ActivateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// process image
+	avatarPath, err := utils.SaveProfileImage(req.Avatar)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("could not save image"), http.StatusInternalServerError)
+		return
+	}
 
 	// Update user
 	user, err := h.DB.GetUserByID(userID)
@@ -229,7 +234,7 @@ func (h *Handler) ActivateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user.Name = req.Name
-	user.Avatar = req.Avatar
+	user.Avatar = avatarPath
 	user.Activated = true
 
 	if err := h.DB.UpdateUser(user); err != nil {
