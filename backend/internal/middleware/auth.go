@@ -16,8 +16,13 @@ func (m *Middleware) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, err := m.App.Auth.GetTokenFromHeader(r)
 		if err != nil {
-			utils.ErrorJSON(w, errors.New("unauthorized - no token"), http.StatusUnauthorized)
-			return
+			// Check cookie if header fails
+			cookie, err := r.Cookie("access_token")
+			if err != nil {
+				utils.ErrorJSON(w, errors.New("unauthorized - no token"), http.StatusUnauthorized)
+				return
+			}
+			token = cookie.Value
 		}
 
 		claims, err := m.App.Auth.ValidateToken(token)
