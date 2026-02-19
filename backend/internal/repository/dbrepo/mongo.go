@@ -34,3 +34,17 @@ func (m *MongoRepo) GetUserByPhone(phone string) (*models.User, error) {
 
 	return &user, nil
 }
+
+func (m *MongoRepo) GetUserByID(id string) (*models.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var user models.User
+	filter := bson.M{"_id": id}
+	err := m.DB.Collection("users").FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
