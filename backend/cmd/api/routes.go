@@ -20,5 +20,9 @@ func (app *application) routes() http.Handler {
 		r.Post("/activate", app.handler.ActivateUser)
 	})
 
+	// Serve static files
+	fileServer := http.FileServer(http.Dir("./uploads"))
+	router.Handle("/uploads/*", http.StripPrefix("/uploads", fileServer))
+
 	return router
 }
