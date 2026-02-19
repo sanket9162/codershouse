@@ -199,5 +199,48 @@ func (h *Handler) VerifyOTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ActivateUser(w http.ResponseWriter, r *http.Request) {
+	// get user id from context
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok {
+		utils.ErrorJSON(w, errors.New("unauthorized"), http.StatusUnauthorized)
+		return
+	}
 
+	// parse json
+	var req ActivateRequest
+	if err := utils.ReadJSON(w, r, &req); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+	}
+
+	// validate
+	if err := utils.ValidateStruct(req); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// process image
+
+	// Update user
+	user, err := h.DB.GetUserByID(userID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("user not found"), http.StatusNotFound)
+		return
+	}
+
+	user.Name = req.Name
+	user.Avatar = req.Avatar
+	user.Activated = true
+
+	if err := h.DB.UpdateUser(user); err != nil {
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	// Response
+	response := map[string]any{
+		"message": "User activated successfully",
+		"user":    user,
+	}
+
+	utils.WriteJSON(w, http.StatusOK, response)
 }
