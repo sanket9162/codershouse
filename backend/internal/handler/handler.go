@@ -257,3 +257,55 @@ func (h *Handler) ActivateUser(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJSON(w, http.StatusOK, response)
 }
+
+func (h *Handler) RefreshToken(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("refresh_token")
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("unauthorized - no refresh token"), http.StatusUnauthorized)
+		return
+	}
+
+	refreshToken := cookie.Value
+
+	// validate the token
+	claims, err := h.App.Auth.ValidateToken(refreshToken)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("unauthorized - invalid refresh token"), http.StatusUnauthorized)
+		return
+	}
+
+	// get the user id
+	userID := claims.ID
+
+	// Check if user exists
+	user, err := h.DB.GetUserByID(userID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("unknown user"), http.StatusUnauthorized)
+		return
+	}
+
+	jwtUser := &utils.JwtUser{
+		ID: user.ID.Hex(),
+	}
+
+	tokenPairs, err := h.App.Auth.GenerateTokenPair(jwtUser)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("error generating tokens"), http.StatusInternalServerError)
+		return
+	}
+
+	// set cookies
+	accessCookie := h.App.Auth.GetAccessTokenCookie(tokenPairs.Token)
+	http.SetCookie(w, accessCookie)
+
+	refreshCookie := h.App.Auth.GetRefreshCookie(tokenPairs.RefreshToken)
+	http.SetCookie(w, refreshCookie)
+
+	response := map[string]any{
+		"access_token": tokenPairs.Token,
+		"user":         user,
+		"auth":         true,
+	}
+
+	utils.WriteJSON(w, http.StatusOK, response)
+}
