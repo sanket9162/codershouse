@@ -8,15 +8,15 @@ import Activate from './pages/Activate/Activate'
 import ProtectedRoute from './routes/ProtectedRoute'
 import Rooms from './pages/Rooms/Rooms'
 import { useLoadingWithRefresh } from './hooks/useLoadingWithRefresh'
+import Loader from './components/Loader/Loader'
 
 function App() {
   const { loading } = useLoadingWithRefresh();
 
+
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <h2 className="text-2xl font-bold">Loading...</h2>
-      </div>
+      <Loader message="Please wait..." />
     )
   }
   return (

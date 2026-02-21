@@ -5,11 +5,14 @@ import { useSelector, useDispatch } from 'react-redux'
 import { setAvatar } from '../../store/activateSlice'
 import { activateUser } from '../../http'
 import { setAuth } from '../../store/authSlice'
+import Loader from '../../components/Loader/Loader'
 
 const StepAvatar = ({ onNext }) => {
   const dispatch = useDispatch();
   const { name, avatar } = useSelector(state => state.activate)
   const [image, setImage] = useState('/images/monkey-avatar.png')
+  const [loading, setLoading] = useState(false)
+
   function captureImage(e) {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -22,6 +25,7 @@ const StepAvatar = ({ onNext }) => {
   }
 
   async function submit() {
+    setLoading(true)
     try {
       const { data } = await activateUser(name, avatar);
       if (data.auth) {
@@ -29,7 +33,15 @@ const StepAvatar = ({ onNext }) => {
       }
     } catch (err) {
       console.log(err);
+    } finally {
+      setLoading(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <Loader message="Activating user..." />
+    )
   }
   return (
     <>
