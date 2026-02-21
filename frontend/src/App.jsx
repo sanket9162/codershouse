@@ -7,8 +7,18 @@ import SemiProtectedRoute from './routes/SemiProtectedRoute'
 import Activate from './pages/Activate/Activate'
 import ProtectedRoute from './routes/ProtectedRoute'
 import Rooms from './pages/Rooms/Rooms'
+import { useLoadingWithRefresh } from './hooks/useLoadingWithRefresh'
 
 function App() {
+  const { loading } = useLoadingWithRefresh
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <h2 className="text-2xl font-bold">Loading...</h2>
+      </div>
+    )
+  }
   return (
     <Router>
       <Navigation />
@@ -23,19 +33,9 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/rooms" element={<Rooms />} />
         </Route>
-        {/* <Route path="/" element={
-          <GuestRoute>
-            <Home />
-          </GuestRoute>
-        } />
-        <Route path="/authenticate" element={
-          <GuestRoute>
-            <Authenticate />
-          </GuestRoute>
-        } /> */}
       </Routes>
     </Router>
   )
-} 
+}
 
 export default App
