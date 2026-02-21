@@ -21,6 +21,10 @@ export const activateUser = (name, avatar) => {
     return api.post("/activate", { name, avatar });
 }
 
+export const logout = () => {
+    return api.get("/logout")
+}
+
 // interceptors
 api.interceptors.response.use(
     (config) => {

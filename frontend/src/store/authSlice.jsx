@@ -23,10 +23,14 @@ export const authSlice = createSlice({
         setOtp: (state, action) => {
             state.otp = action.payload;
         },
+        logoutAuth: (state) => {
+            state.isAuth = false;
+            state.user = null;
+        }
     },
 
 })
 
-export const { setAuth, setOtp } = authSlice.actions
+export const { setAuth, setOtp, logoutAuth } = authSlice.actions
 
 export default authSlice.reducer
