@@ -21,4 +21,29 @@ export const activateUser = (name, avatar) => {
     return api.post("/activate", { name, avatar });
 }
 
+// interceptors
+api.interceptors.response.use(
+    (config) => {
+        return config;
+    },
+    async (error) => {
+        const originalRequest = error.config;
+        if (error.response.status === 401 &&
+            originalRequest &&
+            !originalRequest._isRetry
+        ) {
+            originalRequest._isRetry = true;
+            try {
+                await axios.get(`${import.meta.env.VITE_API_URL}/refresh-token`, {
+                    withCredentials: true,
+                });
+                return api.request(originalRequest);
+            } catch (error) {
+                return console.log("Refresh token failed");
+            }
+        }
+        throw error;
+    }
+)
+
 export default api;
