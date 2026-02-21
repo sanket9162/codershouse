@@ -10,7 +10,7 @@ import Rooms from './pages/Rooms/Rooms'
 import { useLoadingWithRefresh } from './hooks/useLoadingWithRefresh'
 
 function App() {
-  const { loading } = useLoadingWithRefresh
+  const { loading } = useLoadingWithRefresh();
 
   if (loading) {
     return (

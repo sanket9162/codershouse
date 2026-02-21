@@ -11,15 +11,13 @@ export function useLoadingWithRefresh() {
     useEffect(() => {
         (async () => {
             try {
-                const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/refresh-token`, {
+                const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/refresh`, {
                     withCredentials: true,
                 });
 
                 if (data && data.auth) {
                     dispatch(setAuth(data.user))
-
                 }
-                dispatch(setUser(data));
 
             } catch (error) {
                 console.log(error)
