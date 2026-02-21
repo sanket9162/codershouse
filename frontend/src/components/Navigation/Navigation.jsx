@@ -1,14 +1,15 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { logout } from '../../http';
 import { useDispatch, useSelector } from 'react-redux';
-import { logoutAuth } from '../../store/authSlice'; //
+import { logoutAuth } from '../../store/authSlice';
 
 
 
 const Navigation = () => {
 
   const dispatch = useDispatch();
+  const navigate = useNavigate()
   const { isAuth, user } = useSelector((state) => state.auth)
 
   async function logoutUser() {
@@ -18,6 +19,7 @@ const Navigation = () => {
       console.error("logout api failed, but clear local state", err)
     } finally {
       dispatch(logoutAuth())
+      navigate("/")
     }
 
   }
