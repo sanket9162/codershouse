@@ -309,3 +309,12 @@ func (h *Handler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJSON(w, http.StatusOK, response)
 }
+
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, h.App.Auth.GetAccessTokenCookie(""))
+	http.SetCookie(w, h.App.Auth.GetRefreshCookie(""))
+
+	utils.WriteJSON(w, http.StatusOK, map[string]any{
+		"message": "Logged out successfully",
+	})
+}
