@@ -37,6 +37,15 @@ const Navigation = () => {
       {isAuth && (
         <div className='flex items-center gap-4'>
           <span>{user?.name}</span>
+          <Link to="/rooms">
+            <img
+              src={user?.avatar ? `${import.meta.env.VITE_API_URL}${user.avatar}` : '/images/monkey-avatar.png'}
+              alt="avatar"
+              width="40"
+              height="40"
+              className='rounded-full object-cover border-2 border-blue-500 w-10 h-10'
+            />
+          </Link>
           <button
             onClick={logoutUser}
             className='bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-colors'
