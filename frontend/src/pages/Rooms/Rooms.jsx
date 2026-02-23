@@ -1,6 +1,151 @@
 import React from 'react'
+import RoomCard from '../../components/RoomCard/RoomCard'
 
 const Rooms = () => {
+
+
+  const rooms = [
+    {
+      id: 1,
+      topic: "Let's talk about AI",
+      speakers: [
+        {
+          id: 1,
+          name: "Sanket",
+          avatar: "/images/monkey-avatar.png"
+        },
+        {
+          id: 2,
+          name: "Sanket",
+          avatar: "/images/monkey-emoji.png"
+        },
+      ],
+      totalPeople: 10,
+    },
+    {
+      id: 2,
+      topic: "go vs rust",
+      speakers: [
+        {
+          id: 1,
+          name: "Sanket",
+          avatar: "/images/monkey-avatar.png"
+        },
+        {
+          id: 2,
+          name: "Sanket",
+          avatar: "/images/monkey-avatar.png"
+        }
+      ],
+      totalPeople: 23,
+    },
+    {
+      id: 3,
+      topic: "Let's talk about AI",
+      speakers: [
+        {
+          id: 1,
+          name: "Sanket",
+          avatar: "/images/monkey-avatar.png"
+        },
+        {
+          id: 2,
+          name: "Sanket",
+          avatar: "/images/monkey-emoji.png"
+        },
+      ],
+      totalPeople: 10,
+    },
+    {
+      id: 4,
+      topic: "go vs rust",
+      speakers: [
+        {
+          id: 1,
+          name: "Sanket",
+          avatar: "/images/monkey-avatar.png"
+        },
+        {
+          id: 2,
+          name: "Sanket",
+          avatar: "/images/monkey-avatar.png"
+        }
+      ],
+      totalPeople: 23,
+    },
+    {
+      id: 1,
+      topic: "Let's talk about AI",
+      speakers: [
+        {
+          id: 1,
+          name: "Sanket",
+          avatar: "/images/monkey-avatar.png"
+        },
+        {
+          id: 2,
+          name: "Sanket",
+          avatar: "/images/monkey-emoji.png"
+        },
+      ],
+      totalPeople: 10,
+    },
+    {
+      id: 2,
+      topic: "go vs rust",
+      speakers: [
+        {
+          id: 1,
+          name: "Sanket",
+          avatar: "/images/monkey-avatar.png"
+        },
+        {
+          id: 2,
+          name: "Sanket",
+          avatar: "/images/monkey-avatar.png"
+        }
+      ],
+      totalPeople: 23,
+    },
+    {
+      id: 3,
+      topic: "Let's talk about AI",
+      speakers: [
+        {
+          id: 1,
+          name: "Sanket",
+          avatar: "/images/monkey-avatar.png"
+        },
+        {
+          id: 2,
+          name: "Sanket",
+          avatar: "/images/monkey-emoji.png"
+        },
+      ],
+      totalPeople: 10,
+    },
+    {
+      id: 4,
+      topic: "go vs rust",
+      speakers: [
+        {
+          id: 1,
+          name: "Sanket",
+          avatar: "/images/monkey-avatar.png"
+        },
+        {
+          id: 2,
+          name: "Sanket",
+          avatar: "/images/monkey-avatar.png"
+        }
+      ],
+      totalPeople: 23,
+    },
+  ]
+
+
+
+
   return (
     <>
       <div className='flex justify-between mx-auto max-w-6xl py-8'>
@@ -17,6 +162,14 @@ const Rooms = () => {
             <span className='font-bold text-white'>Create room</span>
           </button>
         </div>
+      </div>
+
+      <div className='mx-auto max-w-6xl grid grid-cols-4 gap-4'>
+        {
+          rooms.map((room) => (
+            <RoomCard key={room.id} room={room} />
+          ))
+        }
       </div>
     </>
   )
