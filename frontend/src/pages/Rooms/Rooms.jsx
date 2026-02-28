@@ -1,7 +1,14 @@
 import React from 'react'
 import RoomCard from '../../components/RoomCard/RoomCard'
+import AddRoomModel from '../../components/AddRoomModel/AddRoomModel'
+import { useState } from 'react'
 
 const Rooms = () => {
+
+  const [showModel, setShowModel] = useState(false)
+  function openModel() {
+    setShowModel(true)
+  }
 
 
   const rooms = [
@@ -157,7 +164,7 @@ const Rooms = () => {
           </div>
         </div>
         <div className=''>
-          <button className='flex items-center bg-[#20bd5f] py-[5px] px-[20px] rounded-full gap-1 cursor-pointer hover:bg-[#0f6632] transition-colors'>
+          <button onClick={openModel} className='flex items-center bg-[#20bd5f] py-[5px] px-[20px] rounded-full gap-1 cursor-pointer hover:bg-[#0f6632] transition-colors'>
             <img src="/images/add-room-icon.png" alt="add" />
             <span className='font-bold text-white'>Create room</span>
           </button>
@@ -171,6 +178,7 @@ const Rooms = () => {
           ))
         }
       </div>
+      {showModel && <AddRoomModel onClose={() => setShowModel(false)} />}
     </>
   )
 }
