@@ -3,7 +3,8 @@ import TextInput from '../TextInput/TextInput'
 
 
 const AddRoomModel = ({ onClose }) => {
-    const [topic, setTopic] = useState('open');
+    const [roomType, setRoomType] = useState('open')
+    const [topic, setTopic] = useState('');
 
     return (
         <div className='fixed top-0 left-0 right-0 bottom-0 bg-black/60 flex items-center justify-center z-50'>
@@ -13,26 +14,26 @@ const AddRoomModel = ({ onClose }) => {
                 </button>
                 <div className='mb-4 border-b pb-4 border-[#262626] border-b-[2px] flex flex-col w-full'>
                     <h3 className='text-xl font-bold mb-4'>Enter the topic to be discussed</h3>
-                    <TextInput fullwidth="true" placeholder='Topic' />
+                    <TextInput fullwidth="true" placeholder='Topic' value={topic} onChange={(e) => setTopic(e.target.value)} />
                     <h2 className='text-xl font-bold mt-4 mb-2'>Room Type</h2>
                     <div className='flex justify-between gap-2 my-4'>
                         <div
-                            onClick={() => setTopic('open')}
-                            className={`flex flex-col items-center gap-2 cursor-pointer transition-colors rounded-xl p-4 w-1/3 ${topic === 'open' ? 'bg-[#262626]' : 'hover:bg-[#262626]'}`}
+                            onClick={() => setRoomType('open')}
+                            className={`flex flex-col items-center gap-2 cursor-pointer transition-colors rounded-xl p-4 w-1/3 ${roomType === 'open' ? 'bg-[#262626]' : 'hover:bg-[#262626]'}`}
                         >
                             <img src="/images/globe.png" alt="public" />
                             <span>Public</span>
                         </div>
                         <div
-                            onClick={() => setTopic('social')}
-                            className={`flex flex-col items-center gap-2 cursor-pointer transition-colors rounded-xl p-4 w-1/3 ${topic === 'social' ? 'bg-[#262626]' : 'hover:bg-[#262626]'}`}
+                            onClick={() => setRoomType('social')}
+                            className={`flex flex-col items-center gap-2 cursor-pointer transition-colors rounded-xl p-4 w-1/3 ${roomType === 'social' ? 'bg-[#262626]' : 'hover:bg-[#262626]'}`}
                         >
                             <img src="/images/social.png" alt="social" />
                             <span>Social</span>
                         </div>
                         <div
-                            onClick={() => setTopic('private')}
-                            className={`flex flex-col items-center gap-2 cursor-pointer transition-colors rounded-xl p-4 w-1/3 ${topic === 'private' ? 'bg-[#262626]' : 'hover:bg-[#262626]'}`}
+                            onClick={() => setRoomType('private')}
+                            className={`flex flex-col items-center gap-2 cursor-pointer transition-colors rounded-xl p-4 w-1/3 ${roomType === 'private' ? 'bg-[#262626]' : 'hover:bg-[#262626]'}`}
                         >
                             <img src="/images/lock.png" alt="private" />
                             <span>Private</span>
