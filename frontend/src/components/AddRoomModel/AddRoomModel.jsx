@@ -1,7 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import TextInput from '../TextInput/TextInput'
 
+
 const AddRoomModel = ({ onClose }) => {
+    const [topic, setTopic] = useState('open');
+
     return (
         <div className='fixed top-0 left-0 right-0 bottom-0 bg-black/60 flex items-center justify-center z-50'>
             <div className='bg-[#1d1d1d] p-8 rounded-2xl w-full max-w-md relative border border-[#262626] shadow-lg '>
@@ -13,16 +16,25 @@ const AddRoomModel = ({ onClose }) => {
                     <TextInput fullwidth="true" placeholder='Topic' />
                     <h2 className='text-xl font-bold mt-4 mb-2'>Room Type</h2>
                     <div className='flex justify-between gap-2 my-4'>
-                        <div className='flex flex-col items-center gap-2 cursor-pointer hover:bg-[#262626] transition-colors rounded-xl p-4 w-1/3'>
-                            <img src="/images/globe.png" alt="globes" />
+                        <div
+                            onClick={() => setTopic('open')}
+                            className={`flex flex-col items-center gap-2 cursor-pointer transition-colors rounded-xl p-4 w-1/3 ${topic === 'open' ? 'bg-[#262626]' : 'hover:bg-[#262626]'}`}
+                        >
+                            <img src="/images/globe.png" alt="public" />
                             <span>Public</span>
                         </div>
-                        <div className='flex flex-col items-center gap-2 cursor-pointer hover:bg-[#262626] transition-colors rounded-xl p-4 w-1/3'>
-                            <img src="/images/social.png" alt="globes" />
+                        <div
+                            onClick={() => setTopic('social')}
+                            className={`flex flex-col items-center gap-2 cursor-pointer transition-colors rounded-xl p-4 w-1/3 ${topic === 'social' ? 'bg-[#262626]' : 'hover:bg-[#262626]'}`}
+                        >
+                            <img src="/images/social.png" alt="social" />
                             <span>Social</span>
                         </div>
-                        <div className='flex flex-col items-center gap-2 cursor-pointer hover:bg-[#262626] transition-colors rounded-xl p-4 w-1/3'>
-                            <img src="/images/lock.png" alt="globes" />
+                        <div
+                            onClick={() => setTopic('private')}
+                            className={`flex flex-col items-center gap-2 cursor-pointer transition-colors rounded-xl p-4 w-1/3 ${topic === 'private' ? 'bg-[#262626]' : 'hover:bg-[#262626]'}`}
+                        >
+                            <img src="/images/lock.png" alt="private" />
                             <span>Private</span>
                         </div>
                     </div>
