@@ -20,6 +20,7 @@ func (app *application) routes() http.Handler {
 	router.Group(func(r chi.Router) {
 		r.Use(app.middleware.AuthMiddleware)
 		r.Post("/activate", app.handler.ActivateUser)
+		r.Post("/rooms", app.handler.CreateRoom)
 	})
 
 	// Serve static files
