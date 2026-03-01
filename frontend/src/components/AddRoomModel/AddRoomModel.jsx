@@ -1,10 +1,22 @@
 import React, { useState } from 'react'
 import TextInput from '../TextInput/TextInput'
+import { createRoom } from '../../http'
 
 
 const AddRoomModel = ({ onClose }) => {
     const [roomType, setRoomType] = useState('open')
     const [topic, setTopic] = useState('');
+
+    async function createRoom() {
+        try {
+            if (!topic) return;
+            await createRoom(topic, roomType)
+        } catch (err) {
+            console.error("create room api failed", err)
+        } finally {
+            onClose()
+        }
+    }
 
     return (
         <div className='fixed top-0 left-0 right-0 bottom-0 bg-black/60 flex items-center justify-center z-50'>
@@ -42,7 +54,7 @@ const AddRoomModel = ({ onClose }) => {
                 </div>
                 <div className='flex items-center flex-col gap-4 mt-4'>
                     <h2 className='text-xl font-bold'>Start a room, open to everyone</h2>
-                    <button className='flex items-center gap-2 cursor-pointer bg-[#20bd5f] hover:bg-[#0f6632] transition-colors rounded-full px-4 py-2'><img src="/images/celebration.png" alt="celebration" /> Let's Go</button>
+                    <button onClick={createRoom} className='flex items-center gap-2 cursor-pointer bg-[#20bd5f] hover:bg-[#0f6632] transition-colors rounded-full px-4 py-2'><img src="/images/celebration.png" alt="celebration" /> Let's Go</button>
                 </div>
             </div>
         </div>
