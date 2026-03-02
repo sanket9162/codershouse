@@ -26,7 +26,7 @@ export const logout = () => {
 }
 
 export const createRoom = (topic, roomType) => {
-    return api.post("/room", { topic, roomType });
+    return api.post("/rooms", { topic, roomType });
 }
 
 // interceptors
