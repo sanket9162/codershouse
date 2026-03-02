@@ -74,3 +74,20 @@ func (m *MongoRepo) UpdateUser(u *models.User) error {
 
 	return nil
 }
+
+func (m *MongoRepo) CreateRoom(r *models.Room) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	res, err := m.DB.Collection("rooms").InsertOne(ctx, r)
+	if err != nil {
+		return err
+	}
+
+	// Extract the generated ObjectID and assign it to the room struct
+	if oid, ok := res.InsertedID.(bson.ObjectID); ok {
+		r.ID = oid.Hex()
+	}
+
+	return nil
+}

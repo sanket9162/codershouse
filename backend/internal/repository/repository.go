@@ -7,4 +7,5 @@ type DatabaseRepo interface {
 	GetUserByPhone(phone string) (*models.User, error)
 	GetUserByID(id string) (*models.User, error)
 	UpdateUser(u *models.User) error
+	CreateRoom(r *models.Room) error
 }
