@@ -46,6 +46,11 @@ type ActivateRequest struct {
 	Avatar string `json:"avatar" validate:""`
 }
 
+type CreateRoomRequest struct {
+	Topic    string `json:"topic" validate:"required"`
+	RoomType string `json:"roomType" validate:"required"`
+}
+
 func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello from codershouse"))
 }
@@ -317,4 +322,49 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, map[string]any{
 		"message": "Logged out successfully",
 	})
+}
+
+func (h *Handler) CreateRoom(w http.ResponseWriter, r *http.Request) {
+	// get user id from context
+	userID, ok := r.Context().Value(middleware.UserKey).(string)
+	if !ok {
+		utils.ErrorJSON(w, errors.New("unauthorized"), http.StatusUnauthorized)
+		return
+	}
+
+	// parse json
+	var req CreateRoomRequest
+	if err := utils.ReadJSON(w, r, &req); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// validate struct
+	if err := utils.ValidateStruct(req); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// create room
+	room := &models.Room{
+		OwnerID:   userID,
+		Topic:     req.Topic,
+		RoomType:  req.RoomType,
+		Speakers:  []string{userID},
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	if err := h.DB.CreateRoom(room); err != nil {
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]any{
+		"message": "Room created successfully",
+		"room":    room,
+		"auth":    true,
+	}
+
+	utils.WriteJSON(w, http.StatusOK, response)
 }
