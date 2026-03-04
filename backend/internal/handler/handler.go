@@ -245,8 +245,12 @@ func (h *Handler) ActivateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// build full url for avatar
+	baseURL := "http://localhost:" + h.App.Port
+	// Or use h.App.Config.Domain if it's explicitly set to an absolute URL. Assuming localhost for dev:
+
 	user.Name = req.Name
-	user.Avatar = avatarPath
+	user.Avatar = baseURL + avatarPath
 	user.Activated = true
 
 	if err := h.DB.UpdateUser(user); err != nil {
@@ -347,12 +351,12 @@ func (h *Handler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 
 	// create room
 	room := &models.Room{
-		OwnerID:   userID,
-		Topic:     req.Topic,
-		RoomType:  req.RoomType,
-		Speakers:  []string{userID},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		OwnerID:    userID,
+		Topic:      req.Topic,
+		RoomType:   req.RoomType,
+		SpeakerIDs: []string{userID},
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
 	}
 
 	if err := h.DB.CreateRoom(room); err != nil {
@@ -367,4 +371,14 @@ func (h *Handler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, response)
+}
+
+func (h *Handler) GetAllRooms(w http.ResponseWriter, r *http.Request) {
+	rooms, err := h.DB.GetAllRooms("open")
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, rooms)
 }
