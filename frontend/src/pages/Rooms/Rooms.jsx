@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import RoomCard from '../../components/RoomCard/RoomCard'
 import AddRoomModel from '../../components/AddRoomModel/AddRoomModel'
 import { useState } from 'react'
-import { getAllRooms } from '../../http'
+import { getAllRooms } from '../../http/index.jsx'
 
 const Rooms = () => {
 

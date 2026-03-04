@@ -39,7 +39,7 @@ const Navigation = () => {
           <span>{user?.name}</span>
           <Link to="/rooms">
             <img
-              src={user?.avatar ? `${import.meta.env.VITE_API_URL}${user.avatar}` : '/images/monkey-avatar.png'}
+              src={user?.avatar ? `${user.avatar}` : '/images/monkey-avatar.png'}
               alt="avatar"
               width="40"
               height="40"

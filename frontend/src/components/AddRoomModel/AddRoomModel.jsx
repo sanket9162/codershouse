@@ -14,7 +14,7 @@ const AddRoomModel = ({ onClose }) => {
             if (!topic) return;
             const { data } = await createRoom(topic, roomType)
             console.log(data)
-            navigate(`/room/${data.room._id}`)
+            navigate(`/room/${data.room.id}`)
         } catch (err) {
             console.error("create room api failed", err)
         } finally {
