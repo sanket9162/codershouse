@@ -86,8 +86,52 @@ func (m *MongoRepo) CreateRoom(r *models.Room) error {
 
 	// Extract the generated ObjectID and assign it to the room struct
 	if oid, ok := res.InsertedID.(bson.ObjectID); ok {
-		r.ID = oid.Hex()
+		r.ID = oid
 	}
 
 	return nil
+}
+
+func (m *MongoRepo) GetAllRooms(roomType string) ([]models.Room, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rooms := []models.Room{}
+	filter := bson.M{}
+
+	if roomType != "all" {
+		filter["roomType"] = roomType
+	}
+
+	cursor, err := m.DB.Collection("rooms").Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	err = cursor.All(ctx, &rooms)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch speakers and owner for each room manually
+	for i, room := range rooms {
+		// Populate Owner
+		owner, err := m.GetUserByID(room.OwnerID)
+		if err == nil && owner != nil {
+			rooms[i].Owner = owner
+		}
+
+		// Populate Speakers
+		speakers := []*models.User{}
+		for _, speakerID := range room.SpeakerIDs {
+			speaker, err := m.GetUserByID(speakerID)
+			if err == nil && speaker != nil {
+				speakers = append(speakers, speaker)
+			}
+		}
+		rooms[i].Speakers = speakers
+	}
+
+	return rooms, nil
 }

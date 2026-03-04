@@ -8,4 +8,5 @@ type DatabaseRepo interface {
 	GetUserByID(id string) (*models.User, error)
 	UpdateUser(u *models.User) error
 	CreateRoom(r *models.Room) error
+	GetAllRooms(roomType string) ([]models.Room, error)
 }
