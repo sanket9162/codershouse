@@ -1,156 +1,25 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import RoomCard from '../../components/RoomCard/RoomCard'
 import AddRoomModel from '../../components/AddRoomModel/AddRoomModel'
 import { useState } from 'react'
+import { getAllRooms } from '../../http'
 
 const Rooms = () => {
 
   const [showModel, setShowModel] = useState(false)
+  const [rooms, setRooms] = useState([])
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      const { data } = await getAllRooms();
+      setRooms(data)
+    }
+    fetchRooms();
+  }, [])
+
   function openModel() {
     setShowModel(true)
   }
-
-
-  const rooms = [
-    {
-      id: 1,
-      topic: "Let's talk about AI",
-      speakers: [
-        {
-          id: 1,
-          name: "Sanket",
-          avatar: "/images/monkey-avatar.png"
-        },
-        {
-          id: 2,
-          name: "Sanket",
-          avatar: "/images/monkey-emoji.png"
-        },
-      ],
-      totalPeople: 10,
-    },
-    {
-      id: 2,
-      topic: "go vs rust",
-      speakers: [
-        {
-          id: 1,
-          name: "Sanket",
-          avatar: "/images/monkey-avatar.png"
-        },
-        {
-          id: 2,
-          name: "Sanket",
-          avatar: "/images/monkey-avatar.png"
-        }
-      ],
-      totalPeople: 23,
-    },
-    {
-      id: 3,
-      topic: "Let's talk about AI",
-      speakers: [
-        {
-          id: 1,
-          name: "Sanket",
-          avatar: "/images/monkey-avatar.png"
-        },
-        {
-          id: 2,
-          name: "Sanket",
-          avatar: "/images/monkey-emoji.png"
-        },
-      ],
-      totalPeople: 10,
-    },
-    {
-      id: 4,
-      topic: "go vs rust",
-      speakers: [
-        {
-          id: 1,
-          name: "Sanket",
-          avatar: "/images/monkey-avatar.png"
-        },
-        {
-          id: 2,
-          name: "Sanket",
-          avatar: "/images/monkey-avatar.png"
-        }
-      ],
-      totalPeople: 23,
-    },
-    {
-      id: 1,
-      topic: "Let's talk about AI",
-      speakers: [
-        {
-          id: 1,
-          name: "Sanket",
-          avatar: "/images/monkey-avatar.png"
-        },
-        {
-          id: 2,
-          name: "Sanket",
-          avatar: "/images/monkey-emoji.png"
-        },
-      ],
-      totalPeople: 10,
-    },
-    {
-      id: 2,
-      topic: "go vs rust",
-      speakers: [
-        {
-          id: 1,
-          name: "Sanket",
-          avatar: "/images/monkey-avatar.png"
-        },
-        {
-          id: 2,
-          name: "Sanket",
-          avatar: "/images/monkey-avatar.png"
-        }
-      ],
-      totalPeople: 23,
-    },
-    {
-      id: 3,
-      topic: "Let's talk about AI",
-      speakers: [
-        {
-          id: 1,
-          name: "Sanket",
-          avatar: "/images/monkey-avatar.png"
-        },
-        {
-          id: 2,
-          name: "Sanket",
-          avatar: "/images/monkey-emoji.png"
-        },
-      ],
-      totalPeople: 10,
-    },
-    {
-      id: 4,
-      topic: "go vs rust",
-      speakers: [
-        {
-          id: 1,
-          name: "Sanket",
-          avatar: "/images/monkey-avatar.png"
-        },
-        {
-          id: 2,
-          name: "Sanket",
-          avatar: "/images/monkey-avatar.png"
-        }
-      ],
-      totalPeople: 23,
-    },
-  ]
-
-
 
 
   return (

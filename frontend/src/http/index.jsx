@@ -29,6 +29,10 @@ export const createRoom = (topic, roomType) => {
     return api.post("/rooms", { topic, roomType });
 }
 
+export const getAllRooms = () => {
+    return api.get("/rooms");
+}
+
 // interceptors
 api.interceptors.response.use(
     (config) => {
