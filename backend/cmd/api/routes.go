@@ -21,6 +21,7 @@ func (app *application) routes() http.Handler {
 		r.Use(app.middleware.AuthMiddleware)
 		r.Post("/activate", app.handler.ActivateUser)
 		r.Post("/rooms", app.handler.CreateRoom)
+		r.Get("/rooms", app.handler.GetAllRooms)
 	})
 
 	// Serve static files
