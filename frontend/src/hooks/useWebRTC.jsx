@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { useStateWithCallback } from "./useStateWithCallback";
 import { socketInit } from "../socket/index"
+import { ACTIONS } from "../action";
 
 
 
@@ -54,7 +55,7 @@ export const useWebRTC = (roomId, user) => {
                 localAudio.srcObject = localMediaStream.current
 
                 // socket emit JOIN socket io
-                socket.current.emit("join", {})
+                socket.current.emit(ACTIONS.JOIN, { roomId, peerId: user.id })
             })
         })
     }, [])
