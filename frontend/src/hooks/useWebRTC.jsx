@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useStateWithCallback } from "./useStateWithCallback";
+
+const users = [
+    {
+        id: 1,
+        name: 'Sanket',
+    },
+    {
+        id: 2,
+        name: 'gondhali',
+    }
+]
+
 export const useWebRTC = () => {
-    const [clients, setClients] = useState([
-        {
-            id: 1,
-            name: 'Sanket',
-        },
-        {
-            id: 2,
-            name: 'gondhali',
-        }
-    ])
+    const [clients, setClients] = useStateWithCallback(users)
     return { clients }
 }
