@@ -24,6 +24,10 @@ func (app *application) routes() http.Handler {
 		r.Get("/rooms", app.handler.GetAllRooms)
 	})
 
+	// Serve Socket.IO
+	router.Handle("/socket.io/", app.socket.Handler())
+	router.Handle("/socket.io/*", app.socket.Handler())
+
 	// Serve static files
 	fileServer := http.FileServer(http.Dir("./uploads"))
 	router.Handle("/uploads/*", http.StripPrefix("/uploads", fileServer))

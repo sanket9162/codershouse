@@ -11,6 +11,7 @@ import (
 	"github.com/sanket9162/codershouse/internal/handler"
 	"github.com/sanket9162/codershouse/internal/middleware"
 	"github.com/sanket9162/codershouse/internal/repository/dbrepo"
+	"github.com/sanket9162/codershouse/internal/socket"
 )
 
 type application struct {
@@ -18,6 +19,7 @@ type application struct {
 	logger     *slog.Logger
 	handler    *handler.Handler
 	middleware *middleware.Middleware
+	socket     *socket.SocketServer
 }
 
 func main() {
@@ -48,12 +50,14 @@ func main() {
 
 	h := handler.NewHandler(cfg, logger, repo)
 	m := middleware.NewMiddleware(cfg, logger)
+	s := socket.NewSocketServer(logger)
 
 	app := &application{
 		config:     cfg,
 		logger:     logger,
 		handler:    h,
 		middleware: m,
+		socket:     s,
 	}
 
 	if err = app.serve(); err != nil {
