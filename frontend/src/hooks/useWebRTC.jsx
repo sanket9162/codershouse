@@ -127,5 +127,41 @@ export const useWebRTC = (roomId, user) => {
 
     }, []);
 
+    useEffect(() => {
+        socket.current.on(ACTIONS.ICE_CANDIDATE, ({ peerId, iceCandidate }) => {
+            connections.current[peerId].addIceCandidate(iceCandidate)
+        })
+
+        return () => {
+            socket.current.off(ACTIONS.RELAY_ICE)
+        }
+    }, []);
+
+
+    // Handle SDP
+    useEffect(() => {
+        const handleRelaySDP = async ({ peerId, sessionDescription: remoteOffer }) => {
+            const connection = connections.current[peerId]
+            if (!connection) {
+                return
+            }
+            await connection.setRemoteDescription(remoteOffer)
+            if (remoteOffer.type === 'offer') {
+                const answer = await connection.createAnswer()
+                await connection.setLocalDescription(answer)
+                socket.current.emit(ACTIONS.RELAY_SDP, {
+                    peerId,
+                    sessionDescription: answer,
+                })
+            }
+        }
+
+        socket.current.on(ACTIONS.RELAY_SDP, handleRelaySDP)
+
+        return () => {
+            socket.current.off(ACTIONS.RELAY_SDP)
+        }
+    }, [])
+
     return { clients, provideRef }
 }
