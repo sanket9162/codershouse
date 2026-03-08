@@ -60,5 +60,72 @@ export const useWebRTC = (roomId, user) => {
         })
     }, [])
 
+    useEffect(() => {
+
+        const handleNewPeer = async ({ peerId, createOffer, user: peerUser }) => {
+            if (peerId in connections.current) {
+                return console.log("already connected", peerId, user.name)
+            }
+
+            connections.current[peerId] = new RTCPeerConnection({
+                iceServers: [
+                    {
+                        urls: [
+                            'stun:stun.l.google.com:19302',
+                            'stun:stun1.l.google.com:19302',
+                        ],
+                    },
+                ],
+            })
+
+            // handle new ice candidate
+            connections.current[peerId].onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.current.emit(ACTIONS.RELAY_ICE, {
+                        peerId,
+                        iceCandidate: event.candidate,
+                    })
+                }
+            }
+
+
+            // handle new remote stream
+            connections.current[peerId].ontrack = ({ streams: [remoteStream] }) => {
+                addNewClient(peerUser, () => {
+                    const remoteAudio = audioElements.current[peerId]
+                    if (!remoteAudio) {
+                        return
+                    }
+                    remoteAudio.srcObject = remoteStream
+                })
+            }
+
+            localMediaStream.current.getTracks().forEach(track => {
+                connections.current[peerId].addTrack(
+                    track,
+                    localMediaStream.current
+                )
+            });
+
+            if (createOffer) {
+                const offer = await connections.current[peerId].createOffer()
+                await connections.current[peerId].setLocalDescription(offer)
+                socket.current.emit(ACTIONS.RELAY_SDP, {
+                    peerId,
+                    sessionDescription: offer,
+                })
+            }
+
+        }
+
+
+        socket.current.on(ACTIONS.ADD_PEER, handleNewPeer)
+
+        return () => {
+            socket.current.off(ACTIONS.ADD_PEER)
+        }
+
+    }, []);
+
     return { clients, provideRef }
 }
