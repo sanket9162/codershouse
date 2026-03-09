@@ -3,7 +3,7 @@ import { useWebRTC } from '../../hooks/useWebRTC'
 import { useParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import getRoomById from '../../http'
+import { getRoomById } from '../../http'
 
 
 const Room = () => {
@@ -22,11 +22,13 @@ const Room = () => {
             try {
                 const response = await getRoomById(roomId)
                 const room = response.data
+                console.log(room)
                 setRoom(room)
             } catch (error) {
                 console.error('Error fetching room:', error)
             }
         }
+        fetchRoom()
     }, [roomId])
 
     return (
@@ -47,7 +49,7 @@ const Room = () => {
             </div >
             <div className='bg-[#1d1d1d] w-full min-h-[calc(100vh-220px)] rounded-t-4xl'>
                 <div className='mx-16 pt-8 flex justify-between'>
-                    <h2 className='font-semibold text-xl'>Node js is awesome</h2>
+                    <h2 className='font-semibold text-xl'>{room ? room.topic : 'Loading...'}</h2>
                     <div className='flex gap-3'>
                         <button className='flex items-center gap-2 bg-[#262626] rounded-full px-4 py-2 cursor-pointer hover:bg-[#333333] transition-colors'>
                             <img src="/images/palm.png" alt="palm.png" />
@@ -69,7 +71,7 @@ const Room = () => {
                                         <audio
                                             ref={(instance) => provideRef(instance, client.id)}
                                             autoPlay></audio>
-                                        <img src={client.avatar} alt={client.name} width={75} height={75} className='rounded-full' />
+                                        <img src={client.avatar} alt={client.name} className='rounded-full w-[75px] h-[75px]' />
                                         <button className='bg-[#212121] rounded-full p-2 cursor-pointer absolute bottom-0 right-0 w-[30px] h-[30px] '>
                                             <img src="/images/mic-mute.png" alt="mic-mute.png" />
                                         </button>

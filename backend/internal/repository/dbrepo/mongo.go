@@ -135,3 +135,21 @@ func (m *MongoRepo) GetAllRooms(roomType string) ([]models.Room, error) {
 
 	return rooms, nil
 }
+
+func (m *MongoRepo) GetRoomById(id string) (*models.Room, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var room models.Room
+	oid, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	filter := bson.M{"_id": oid}
+	err = m.DB.Collection("rooms").FindOne(ctx, filter).Decode(&room)
+	if err != nil {
+		return nil, err
+	}
+
+	return &room, nil
+}
