@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useWebRTC } from '../../hooks/useWebRTC'
 import { useParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
@@ -11,11 +11,22 @@ const Room = () => {
     const { clients, provideRef } = useWebRTC(roomId, user)
     const navigate = useNavigate()
 
+    const [room, setRoom] = useState(null)
     const handleManualLeave = () => {
         navigate('/rooms')
     }
 
-
+    useEffect(() => {
+        const fetchRoom = async () => {
+            try {
+                const response = await axios.get(`/rooms/${roomId}`)
+                const room = response.data
+                setRoom(room)
+            } catch (error) {
+                console.error('Error fetching room:', error)
+            }
+        }
+    }, [roomId])
 
     return (
         <>
