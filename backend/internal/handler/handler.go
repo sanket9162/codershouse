@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/sanket9162/codershouse/internal/config"
 	"github.com/sanket9162/codershouse/internal/middleware"
 	"github.com/sanket9162/codershouse/internal/models"
@@ -381,4 +382,18 @@ func (h *Handler) GetAllRooms(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, rooms)
+}
+
+func (h *Handler) GetRoomById(w http.ResponseWriter, r *http.Request) {
+	// get room id from url
+	roomId := chi.URLParam(r, "roomId")
+
+	// get room from db
+	room, err := h.DB.GetRoomById(roomId)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusNotFound)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, room)
 }
