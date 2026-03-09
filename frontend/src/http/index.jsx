@@ -33,6 +33,10 @@ export const getAllRooms = () => {
     return api.get("/rooms");
 }
 
+export const getRoomById = (roomId) => {
+    return api.get(`/rooms/${roomId}`);
+}
+
 // interceptors
 api.interceptors.response.use(
     (config) => {

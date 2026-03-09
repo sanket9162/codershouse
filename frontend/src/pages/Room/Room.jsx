@@ -3,6 +3,7 @@ import { useWebRTC } from '../../hooks/useWebRTC'
 import { useParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import getRoomById from '../../http'
 
 
 const Room = () => {
@@ -19,7 +20,7 @@ const Room = () => {
     useEffect(() => {
         const fetchRoom = async () => {
             try {
-                const response = await axios.get(`/rooms/${roomId}`)
+                const response = await getRoomById(roomId)
                 const room = response.data
                 setRoom(room)
             } catch (error) {
