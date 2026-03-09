@@ -22,6 +22,7 @@ func (app *application) routes() http.Handler {
 		r.Post("/activate", app.handler.ActivateUser)
 		r.Post("/rooms", app.handler.CreateRoom)
 		r.Get("/rooms", app.handler.GetAllRooms)
+		r.Get("/rooms/{roomID}", app.handler.GetRoomByID)
 	})
 
 	// Serve Socket.IO
