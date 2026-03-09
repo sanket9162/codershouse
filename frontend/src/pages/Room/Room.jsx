@@ -1,26 +1,75 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useWebRTC } from '../../hooks/useWebRTC'
 import { useParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 
 const Room = () => {
     const { id: roomId } = useParams()
     const user = useSelector((state) => state.auth.user)
     const { clients, provideRef } = useWebRTC(roomId, user)
+    const navigate = useNavigate()
+
+    const handleManualLeave = () => {
+        navigate('/rooms')
+    }
+
+
+
     return (
         <>
-            <div>All Connected Clients</div>
-            {
-                clients.map((client) => (
-                    <div key={client.id}>
-                        <audio
-                            ref={(instance) => provideRef(instance, client.id)}
-                            controls autoPlay></audio>
-                        <h4>{client.name}</h4>
+            <div>
+                <div className='flex justify-between mx-auto max-w-6xl py-8'>
+                    <div className='flex items-center ml-16 relative pb-3 after:content-[""] after:absolute after:w-2/4 after:h-[4px] after:bg-blue-600 after:bottom-0'>
+                        <button onClick={handleManualLeave} className='flex items-center gap-2 cursor-pointer bg-none'>
+
+                            <img src="/images/arrow-left.png" alt="back" />
+                            <span className='font-semibold'>All voice rooms</span>
+
+
+                        </button>
                     </div>
-                ))
-            }
+                </div>
+
+            </div >
+            <div className='bg-[#1d1d1d] w-full min-h-[calc(100vh-220px)] rounded-t-4xl'>
+                <div className='mx-16 pt-8 flex justify-between'>
+                    <h2 className='font-semibold text-xl'>Node js is awesome</h2>
+                    <div className='flex gap-3'>
+                        <button className='flex items-center gap-2 bg-[#262626] rounded-full px-4 py-2 cursor-pointer hover:bg-[#333333] transition-colors'>
+                            <img src="/images/palm.png" alt="palm.png" />
+                        </button>
+                        <button onClick={handleManualLeave} className='flex items-center gap-2 bg-[#262626] rounded-full px-4 py-2 cursor-pointer hover:bg-[#333333] transition-colors'>
+                            <img src="/images/win.png" alt="win.png" />
+                            <span>Leave quietly</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div className='mx-16 mt-8 flex items-center flex-wrap gap-4'>
+                    {
+                        clients.map((client) => {
+                            return (
+                                <div key={client.id} className='flex items-center flex-col gap-4 '>
+
+                                    <div className='relative border-4 border-[#5453e0] rounded-full'>
+                                        <audio
+                                            ref={(instance) => provideRef(instance, client.id)}
+                                            autoPlay></audio>
+                                        <img src={client.avatar} alt={client.name} width={75} height={75} className='rounded-full' />
+                                        <button className='bg-[#212121] rounded-full p-2 cursor-pointer absolute bottom-0 right-0 w-[30px] h-[30px] '>
+                                            <img src="/images/mic-mute.png" alt="mic-mute.png" />
+                                        </button>
+                                    </div>
+                                    <h4 className='font-semibold text-sm'>{client.name}</h4>
+                                </div>
+                            )
+                        })
+                    }
+                </div>
+
+            </div>
         </>
     )
 }
