@@ -17,6 +17,8 @@ const (
 	ActionSessionDescription = "session-description"
 	ActionIceCandidate       = "ice-candidate"
 	ActionRemovePeer         = "remove-peer"
+	ActionMute               = "mute"
+	ActionUnMute             = "unmute"
 )
 
 type SocketUser struct {
@@ -143,6 +145,56 @@ func (s *SocketServer) setupRoutes() {
 			s.io.To(socket.Room(peerId)).Emit(ActionSessionDescription, map[string]interface{}{
 				"peerId":             client.Id(),
 				"sessionDescription": sessionDescription,
+			})
+		})
+
+		// mute
+		client.On(ActionMute, func(args ...any) {
+			if len(args) == 0 {
+				return
+			}
+			data, ok := args[0].(map[string]interface{})
+			if !ok {
+				return
+			}
+
+			roomId, _ := data["roomId"].(string)
+			userId, _ := data["userId"].(string)
+
+			s.mu.Lock()
+			if u, exists := s.users[client.Id()]; exists {
+				u.User["muted"] = true
+			}
+			s.mu.Unlock()
+
+			s.io.To(socket.Room(roomId)).Emit(ActionMute, map[string]interface{}{
+				"peerId": client.Id(),
+				"userId": userId,
+			})
+		})
+
+		// unmute
+		client.On(ActionUnMute, func(args ...any) {
+			if len(args) == 0 {
+				return
+			}
+			data, ok := args[0].(map[string]interface{})
+			if !ok {
+				return
+			}
+
+			roomId, _ := data["roomId"].(string)
+			userId, _ := data["userId"].(string)
+
+			s.mu.Lock()
+			if u, exists := s.users[client.Id()]; exists {
+				u.User["muted"] = false
+			}
+			s.mu.Unlock()
+
+			s.io.To(socket.Room(roomId)).Emit(ActionUnMute, map[string]interface{}{
+				"peerId": client.Id(),
+				"userId": userId,
 			})
 		})
 
