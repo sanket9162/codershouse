@@ -7,4 +7,6 @@ export const ACTIONS = {
     SESSION_DESCRIPTION: "session-description",
     ICE_CANDIDATE: "ice-candidate",
     REMOVE_PEER: "remove-peer",
+    MUTE: "mute",
+    UNMUTE: "unmute",
 }

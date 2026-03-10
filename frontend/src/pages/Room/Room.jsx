@@ -9,13 +9,18 @@ import { getRoomById } from '../../http'
 const Room = () => {
     const { id: roomId } = useParams()
     const user = useSelector((state) => state.auth.user)
-    const { clients, provideRef } = useWebRTC(roomId, user)
+    const { clients, provideRef, handleMute } = useWebRTC(roomId, user)
     const navigate = useNavigate()
 
     const [room, setRoom] = useState(null)
+    const [isMuted, setIsMuted] = useState(true)
     const handleManualLeave = () => {
         navigate('/rooms')
     }
+
+    useEffect(() => {
+        handleMute(isMuted, user.id);
+    }, [isMuted])
 
     useEffect(() => {
         const fetchRoom = async () => {
@@ -30,6 +35,12 @@ const Room = () => {
         }
         fetchRoom()
     }, [roomId])
+
+
+    const handleMuteClick = (clientId) => {
+        if (clientId !== user.id) return;
+        setIsMuted(isMuted => !isMuted)
+    }
 
     return (
         <>
@@ -72,8 +83,14 @@ const Room = () => {
                                             ref={(instance) => provideRef(instance, client.id)}
                                             autoPlay></audio>
                                         <img src={client.avatar} alt={client.name} className='rounded-full w-[75px] h-[75px]' />
-                                        <button className='bg-[#212121] rounded-full p-2 cursor-pointer absolute bottom-0 right-0 w-[30px] h-[30px] '>
-                                            <img src="/images/mic-mute.png" alt="mic-mute.png" />
+                                        <button onClick={() => handleMuteClick(client.id)} className='bg-[#212121] rounded-full p-2 cursor-pointer absolute bottom-0 right-0 w-[30px] h-[30px] '>
+                                            {
+                                                client.muted ? (
+                                                    <img src="/images/mic-mute.png" alt="mic-mute.png" />
+                                                ) : (
+                                                    <img src="/images/mic.png" alt="mic.png" />
+                                                )
+                                            }
                                         </button>
                                     </div>
                                     <h4 className='font-semibold text-sm'>{client.name}</h4>
