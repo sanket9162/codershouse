@@ -1,0 +1,41 @@
+
+services:
+
+  backend:
+    image: coderhouse-backend:1.0.0
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: coderhouse-backend-dev
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./backend/.env
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./backend
+          target: /app
+
+  frontend:
+    image: coderhouse-frontend:1.0.0
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: coderhouse-frontend-dev
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./frontend/package.json
+
+volumes:
+  mongo-data-dev:

@@ -1,0 +1,24 @@
+services:
+  mongo:
+    image: mongo:latest
+    container_name: coderhouse-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+
+  backend:
+    image: coderhouse-backend:1.0.0
+    container_name: coderhouse-backend
+    depends_on:
+      - mongo
+
+  frontend:
+    image: coderhouse-frontend:1.0.0
+    container_name: coderhouse-frontend
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:

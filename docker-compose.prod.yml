@@ -1,0 +1,31 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: coderhouse-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
+
+  backend:
+    image: 992019/coderhouse-backend:${IMAGE_TAG:latest}
+    env_file:
+      - .env
+    restart: always
+
+  frontend:
+    image: 992019/coderhouse-frontend:${IMAGE_TAG:latest}
+    env_file:
+      - .env
+    restart: always
+
+volumes:
+  caddy_data:
+  caddy_config:
