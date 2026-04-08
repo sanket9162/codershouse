@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import Button from '../../../components/Button/Button'
 import Card from '../../../components/Card/Card'
-import TextInput from '../../../components/Textinput/TextInput'
+import TextInput from '../../../components/TextInput/TextInput'
 
 const Email = ({ onNext }) => {
   const [email, setEmail] = useState('')
