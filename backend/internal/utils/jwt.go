@@ -86,7 +86,7 @@ func (j *Auth) GetRefreshCookie(refreshToken string) *http.Cookie {
 		MaxAge:   int(j.RefreshExpiry.Seconds()),
 		Domain:   j.CookieDomain,
 		HttpOnly: true,
-		Secure:   false,
+		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	}
 }
@@ -100,7 +100,7 @@ func (j *Auth) GetAccessTokenCookie(accessToken string) *http.Cookie {
 		MaxAge:   int(j.TokenExpiry.Seconds()),
 		Domain:   j.CookieDomain,
 		HttpOnly: true,
-		Secure:   false, // Set to false for dev
+		Secure:   true, // Set to false for dev
 		SameSite: http.SameSiteLaxMode,
 	}
 }
@@ -115,7 +115,7 @@ func (j *Auth) GetExpiredAccessTokenCookie() *http.Cookie {
 		SameSite: http.SameSiteStrictMode,
 		Domain:   j.CookieDomain,
 		HttpOnly: true,
-		Secure:   false, // Set to false for dev
+		Secure:   true, // Set to true for HTTPS production
 	}
 }
 
