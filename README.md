@@ -9,80 +9,12 @@ A **real-time audio room platform** inspired by Clubhouse — built for develope
 - 📱 **Phone OTP Authentication** — Sign in with your phone number via a secure, hash-based OTP flow
 - 🎙️ **Live Audio Rooms** — Create and join real-time audio rooms powered by WebRTC
 - 🔊 **Speaker / Listener Roles** — Rooms have distinct speaker and listener roles
-- 🔴 **Open & Private Rooms** — Choose room visibility when creating
 - ⚡ **Real-time Signalling** — Socket.IO handles WebRTC handshakes, room join/leave events
 - 🔐 **JWT Auth** — Stateless auth using access + refresh token pair stored in httpOnly cookies
 - 🐳 **Fully Dockerized** — One command to spin up the entire stack
 
 ---
 
-## 🛠️ Tech Stack
-
-### Frontend
-| Technology | Purpose |
-|---|---|
-| React 19 + Vite | UI framework & build tool |
-| Redux Toolkit | Global state management |
-| React Router v7 | Client-side routing |
-| Socket.IO Client | Real-time signalling |
-| Tailwind CSS v4 | Styling |
-| Axios | HTTP client |
-| Nginx | Static file serving in production |
-
-### Backend
-| Technology | Purpose |
-|---|---|
-| Go (Golang) | Server runtime |
-| Chi Router | HTTP routing & middleware |
-| MongoDB (v2 driver) | Database |
-| Socket.IO (Go) | WebSocket / signalling server |
-| Gorilla WebSocket | Low-level WebSocket support |
-| JWT (golang-jwt) | Authentication tokens |
-| go-playground/validator | Request validation |
-| godotenv | Environment config |
-
-### Infrastructure
-| Technology | Purpose |
-|---|---|
-| Docker + Docker Compose | Containerisation & orchestration |
-| MongoDB | Persistent data storage |
-
----
-
-## 🗂️ Project Structure
-
-```
-coderhouse/
-├── backend/                  # Go backend
-│   ├── cmd/api/              # Application entrypoint
-│   ├── internal/
-│   │   ├── config/           # App configuration
-│   │   ├── database/         # MongoDB connection
-│   │   ├── handler/          # HTTP request handlers
-│   │   ├── middleware/        # JWT auth middleware
-│   │   ├── models/           # Data models (User, Room)
-│   │   ├── repository/       # Database access layer
-│   │   ├── socket/           # Socket.IO event handlers
-│   │   └── utils/            # Helpers (JWT, encryption, JSON)
-│   ├── Dockerfile
-│   └── go.mod
-│
-├── frontend/                 # React + Vite frontend
-│   ├── src/
-│   │   ├── components/       # Reusable UI components
-│   │   ├── pages/            # Route-level page components
-│   │   ├── routes/           # Protected / guest route wrappers
-│   │   ├── hooks/            # Custom React hooks
-│   │   ├── store/            # Redux store & slices
-│   │   ├── socket/           # Socket.IO client setup
-│   │   └── http/             # Axios instance & API calls
-│   ├── nginx.conf            # Nginx config (SPA fallback)
-│   └── Dockerfile
-│
-└── docker-compose.yml        # Full-stack orchestration
-```
-
----
 
 ## 🔌 API Endpoints
 
@@ -105,7 +37,7 @@ coderhouse/
 ### Prerequisites
 
 - [Docker](https://www.docker.com/) & Docker Compose
-- (For local dev) [Go 1.21+](https://go.dev/) and [Node.js 18+](https://nodejs.org/)
+- (For local dev) [Go 1.25+](https://go.dev/) and [Node.js 24+](https://nodejs.org/)
 
 ---
 
@@ -132,9 +64,17 @@ KEY=your-secret-key-here
 TWILIO_SID=your_twilio_sid
 TWILIO_TOKEN=your_twilio_token
 TWILIO_PHONE=+1234567890
-```
 
-> **Note:** Without Twilio credentials, the OTP is logged to the server console — useful for development.
+DB_URL=mongodb://mongo:27017
+DB_NAME=codershouse
+
+#jwt env
+JWT_SECRET=your-secret-key-here
+JWT_ISSUER=your-issuer-here
+JWT_AUDIENCE=your-audience-here
+COOKIE_DOMAIN=localhost
+
+```
 
 **3. Start all services**
 ```bash
@@ -169,46 +109,6 @@ npm run dev
 The dev server runs at **http://localhost:5173** and proxies `/api` and `/socket.io` requests to the backend.
 
 ---
-
-## 🔒 Authentication Flow
-
-```
-1. User enters phone number
-      ↓
-2. POST /api/send-otp  →  OTP generated & (optionally) sent via Twilio SMS
-      ↓
-3. POST /api/verify-otp  →  OTP verified, JWT access + refresh tokens set as httpOnly cookies
-      ↓
-4. POST /api/activate  →  User sets name & avatar (one-time profile setup)
-      ↓
-5. Authenticated user can browse & join rooms
-```
-
----
-
-## 🎙️ WebRTC Flow
-
-```
-User A creates/joins room  →  Socket.IO "join-room" event
-      ↓
-Server notifies existing peers  →  "user-joined" event
-      ↓
-Peers exchange SDP Offers/Answers via Socket.IO signalling
-      ↓
-ICE candidates exchanged
-      ↓
-Direct peer-to-peer audio connection established
-```
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ---
 
