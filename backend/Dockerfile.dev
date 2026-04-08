@@ -1,0 +1,22 @@
+# -------------------------------------------------------------
+# BACKEND: DEVELOPMENT DOCKERFILE
+# -------------------------------------------------------------
+FROM golang:1.25-alpine
+
+WORKDIR /app
+
+# Copy dependency mappings for caching
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy the source code initially so the container can boot up properly.
+# The new `docker compose watch` flag will dynamically sync any saved changes over this!
+COPY . .
+
+# Expose backend port
+EXPOSE 8080
+
+# Run the raw Go code (Hot Reloading via compose volumes)
+CMD ["go", "run", "./cmd/api"]
