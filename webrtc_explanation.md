@@ -1,59 +1,282 @@
-# Complete Guide to WebRTC and Socket.IO in Codershouse
+# Comprehensive Guide to WebRTC and Socket.io
 
-This document breaks down exactly how WebRTC (for voice audio) and Socket.IO (for signaling) work together in your application between the React frontend and Go backend.
+This document provides a detailed explanation of the core files powering the real-time voice rooms: the React frontend hook (`useWebRTC.jsx`) and the Go backend server (`socket.go`).
+
+## 1. The React Frontend: `useWebRTC.jsx`
+
+This React Hook manages the entire lifecycle of a user inside a voice room. It handles microphone access, Peer-to-Peer connections, mapping audio to HTML elements, and communicating with the signaling server.
+
+### State & References
+```javascript
+export const useWebRTC = (roomId, user) => {
+    // Custom state that holds all users currently in the room. 
+    // We use a custom hook to handle immediate callbacks when state updates.
+    const [clients, setClients] = useStateWithCallback([])
+    
+    // Stores references to HTML <audio> output tags mapped by User IDs
+    const audioElements = useRef({})
+    
+    // Inter-browser connections mapping. Key: Socket ID, Value: RTCPeerConnection object
+    const connections = useRef({})
+    
+    // Holds the actual hardware microphone feed from your computer
+    const localMediaStream = useRef(null)
+    
+    // The active socket.io connection to the Go server
+    const socket = useRef(null)
+    
+    // A mutable reference to bypass React Closure bugs inside stale event listeners
+    const clientsRef = useRef([])
+```
+
+### Initialization & Cleanup
+```javascript
+    useEffect(() => {
+        // Connect to the Socket.io Backend instantly when the component mounts
+        socket.current = socketInit()
+
+        // Cleanup Function: Runs when you leave the room (/rooms)
+        return () => {
+            // Turn off the hardware microphone light
+            localMediaStream.current?.getTracks().forEach((track) => track.stop())
+            
+            // Tell the server we are leaving
+            socket.current.emit(ACTIONS.LEAVE, { roomId })
+            
+            // Unplug the websocket connection cleanly
+            if (socket.current && socket.current.connected) {
+                socket.current.disconnect()
+            }
+        }
+    }, [])
+```
+
+### Helper Functions
+```javascript
+    // Attaches the <audio> tag rendered in Room.jsx to the audioElements map
+    const provideRef = (instance, userId) => {
+        audioElements.current[userId] = instance
+    }
+
+    // Safely adds a user object to the `clients` React State array so they show up on screen
+    const addNewClient = useCallback((newClient, cb) => {
+        const lookingFor = clients.find((client) => client.id === newClient.id)
+
+        if (!lookingFor) {
+            setClients((existingClients) => {
+...
+```
+
+### Starting the Hardware Media (Microphone)
+```javascript
+    useEffect(() => {
+        const startMedia = async () => {
+            try {
+                // Request microphone access from the user's browser securely
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+                localMediaStream.current = stream
+            } catch (error) { ... }
+        }
+        
+        startMedia().then(() => {
+            // Inject OURSELVES into the UI array so our avatar appears safely muted
+            addNewClient({ ...user, muted: true }, () => {
+                
+                // Mute our local <audio> tag so we don't hear our own echo playback!
+                const localAudio = audioElements.current[user.id]
+                if (localAudio) {
+                    localAudio.volume = 0 
+                    localAudio.srcObject = localMediaStream.current
+                }
+
+                // Announce our presence to the Go Server
+                socket.current.emit(ACTIONS.JOIN, { roomId, peerId: user.id, ...user })
+            })
+        })
+    }, [])
+```
+
+### Handling New Peers & Creating Offers (The Core WebRTC Engine)
+```javascript
+    useEffect(() => {
+        // The server told us someone is already here (or joined after us)
+        const handleNewPeer = async ({ peerId, createOffer, user: peerUser }) => {
+            // Instantly render them on our screen
+            addNewClient(peerUser, () => { })
+
+            // 1. Create a raw network bridge config (RTCPeerConnection)
+            connections.current[peerId] = new RTCPeerConnection({
+                iceServers: [ // Google's free servers to punch through household routers (NAT traversal)
+                    { urls: ['stun:stun.l.google.com:19302'] },
+                ],
+            })
+
+            // 2. We discovered our own IP route (ICE Candidate). Send it to the peer!
+            connections.current[peerId].onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.current.emit(ACTIONS.RELAY_ICE, { peerId, iceCandidate: event.candidate })
+                }
+            }
+
+            // 3. The magic moment: The other person's audio track successfully arrived!
+            connections.current[peerId].ontrack = ({ streams: [remoteStream] }) => {
+                addNewClient({ ...peerUser, muted: true }, () => {
+                    // Pipe their internet audio stream into our HTML <audio> tag to hear them!
+                    const remoteAudio = audioElements.current[peerUser.id]
+                    if (remoteAudio) remoteAudio.srcObject = remoteStream
+                })
+            }
+
+            // 4. Pipe OUR microphone feed INTO the new connection tunnel
+            localMediaStream.current.getTracks().forEach(track => {
+                connections.current[peerId].addTrack(track, localMediaStream.current)
+            });
+
+            // 5. If we are the initiating client, generate an SDP Offer (our media capabilities)
+            if (createOffer) {
+                const offer = await connections.current[peerId].createOffer()
+                await connections.current[peerId].setLocalDescription(offer)
+                socket.current.emit(ACTIONS.RELAY_SDP, { peerId, sessionDescription: offer })
+            }
+        }
+        socket.current.on(ACTIONS.ADD_PEER, handleNewPeer)
+    }, []);
+```
+
+### Processing Network Answers (SDP and ICE)
+```javascript
+    // Handshake Part 2: Handling the other person's media specs (SDP)
+    useEffect(() => {
+        const handleRelaySDP = async ({ peerId, sessionDescription: remoteOffer }) => {
+            const connection = connections.current[peerId]
+            
+            // Absorb their specs
+            await connection.setRemoteDescription(new RTCSessionDescription(remoteOffer))
+
+            // Flush the trickled ICE queues to prevent InvalidStateError crashes
+            if (connection.iceCandidatesQueue) {
+                connection.iceCandidatesQueue.forEach(async (candidate) => {
+                    await connection.addIceCandidate(new RTCIceCandidate(candidate))
+                })
+            }
+
+            // If they sent us an offer, reply backward with our Answer
+            if (remoteOffer.type === 'offer') {
+                const answer = await connection.createAnswer()
+                await connection.setLocalDescription(answer)
+                socket.current.emit(ACTIONS.RELAY_SDP, { peerId, sessionDescription: answer })
+            }
+        }
+        socket.current.on(ACTIONS.SESSION_DESCRIPTION, handleRelaySDP)
+    }, [])
+```
 
 ---
 
-## 1. The Core Concept: Why do we need both?
-- **WebRTC (Web Real-Time Communication)** is a peer-to-peer technology. This means that audio travels *directly* from User A's browser to User B's browser without going through your backend server, saving massive amounts of bandwidth and ensuring very low latency.
-- However, WebRTC has a major problem: **Browsers don't know how to find each other on the internet.** 
-- To solve this, we use a **Signaling Server** (our Go Backend using **Socket.IO**). Its only job is to act as a middleman so browsers can swap their IP addresses (ICE Candidates) and multimedia capabilities (Session Description Protocol / SDP). Once the swap is done, the browsers talk to each other directly, and the signaling server is no longer involved in the audio transfer.
+## 2. The Go Backend: `socket.go`
 
----
+This file is a real-time message relayer. Its only job is to receive metadata from User A, and instantly bounce it precisely back to User B without ever actually touching the audio data.
 
-## 2. The Socket.IO Actions (`action.jsx`)
+### Structures & Memory
+```go
+// Stores room association and any dynamic state (like name, avatar, mute status)
+type SocketUser struct {
+	RoomID string
+	User   map[string]interface{}
+}
 
-Here is the lifecycle of our websocket events in alphabetical order:
+type SocketServer struct {
+	io     *socket.Server
+	mu     sync.RWMutex                     // Thread-safe lock to prevent map crashes on concurrent map writes
+	users  map[socket.SocketId]*SocketUser  // Global dictionary of everyone connected
+}
+```
 
-### `JOIN` (Frontend -> Backend)
-Emitted by the frontend as soon as `navigator.mediaDevices.getUserMedia` successfully activates the microphone. It tells the backend *"I am ready to join the room, please introduce me to everyone else!"*
+### The Join Flow (Handing out introductions)
+```go
+		client.On(ActionJoin, func(args ...any) {
+            // ... parsing data ...
+            
+			// 1. Save user to server RAM securely
+			s.mu.Lock()
+			s.users[client.Id()] = &SocketUser{ RoomID: roomId, User: data }
+			s.mu.Unlock()
 
-### `ADD_PEER` (Backend -> Frontend)
-The backend responds by finding everyone in the requested room and triggering this event exactly twice for every connection:
-- It tells an **existing user**: "A new user joined, get ready to receive a call!" (`createOffer: false`)
-- It tells the **new user**: "Here is an existing user in the room, ring them!" (`createOffer: true`)
+			// 2. Find everyone else already sitting in this room ID
+			s.mu.RLock()
+			var existingSockets []socket.SocketId
+			for sid, u := range s.users {
+				if u.RoomID == roomId && sid != client.Id() {
+					existingSockets = append(existingSockets, sid)
+				}
+			}
+			s.mu.RUnlock()
 
-### `RELAY_SDP` and `SESSION_DESCRIPTION`
-- **SDP (Session Description Protocol)** contains data like "I am transmitting audio using Opus codec".
-- **Offer / Answer:** The new user will generate an SDP "Offer" and send it to the backend via `RELAY_SDP`. 
-- The backend forwards it directly to the target peer using the `SESSION_DESCRIPTION` event.
-- The target peer generates an SDP "Answer" and sends it back through the same pipeline.
+			for _, existingSocketId := range existingSockets {
+				// 3. Inform the veteran user: "Hey, someone new just arrived!"
+				s.io.To(socket.Room(existingSocketId)).Emit(ActionAddPeer, map[string]interface{}{
+					"peerId":      client.Id(),
+					"createOffer": false,        // The person already here waits
+					"user":        newUserProfile,
+				})
 
-### `RELAY_ICE` and `ICE_CANDIDATE`
-- **ICE (Interactive Connectivity Establishment):** This is essentially how browsers safely bypass firewalls and routers to find each other's public IP address.
-- Behind the scenes, the browser generates dozens of "Candidates" (potential network paths). The React app fires `RELAY_ICE` to the Go backend.
-- The Go backend forwards these candidates instantly to the target peer using the `ICE_CANDIDATE` event.
+				// 4. Inform the new user: "Hey, someone is already sitting here!"
+				client.Emit(ActionAddPeer, map[string]interface{}{
+					"peerId":      string(existingSocketId),
+					"createOffer": true,         // The new person must initiate the WebRTC handshake
+					"user":        existingUserProfile,
+				})
+			}
+            
+            // Physically subscribe the socket to the Room channel for bulk broadcasts
+			client.Join(socket.Room(roomId))
+		})
+```
 
-### `LEAVE` and `REMOVE_PEER`
-When you close the tab, press the back button, or explicitly leave the room, your browser triggers `LEAVE` (or standard `disconnect`). The Go backend cleans you out of its memory, and tells all remaining clients `REMOVE_PEER`, preventing ghost connections and immediately deleting your audio element from the UI.
+### The Muting Engine (Dynamic state modification)
+```go
+		client.On(ActionMute, func(args ...any) {
+            // ... parsing payload ...
+            
+            // 1. Thread-safe mutation of the User's memory profile to "Muted"
+            // This guarantees that if a new person joins 5 minutes from now, 
+            // the `ActionAddPeer` payload will correctly tell them we are muted.
+			s.mu.Lock()
+			if u, exists := s.users[client.Id()]; exists {
+				u.User["muted"] = true
+			}
+			s.mu.Unlock()
 
----
+            // 2. Broadcast the Mute event to the entire room instantly
+			s.io.To(socket.Room(roomId)).Emit(ActionMute, ...)
+		})
+```
 
-## 3. The Go Backend Architecture (`socket.go`)
+### The Teardown Flow (Server memory cleanup)
+```go
+		// Triggers gracefully on route change, or forcefully on internet disconnection
+		leave := func() {
+            // 1. Nuke them from the server-wide map
+			s.mu.Lock()
+			user, ok := s.users[client.Id()]
+			if ok { delete(s.users, client.Id()) }
+			s.mu.Unlock()
 
-Because Go is highly concurrent, your backend architecture takes steps to be thread-safe:
-- **`sync.RWMutex`:** Whenever the backend stores an incoming user in the `s.users` memory map (which tracks the socket ID, room ID, and frontend user object), it locks the map. This prevents the server from crashing if 1,000 users join the same room on the exact same millisecond.
-- **`io.In(socket.Room(roomId))`:** `github.com/zishang520/socket.io` natively handles grouping WebSockets into logical rooms. We use this to effortlessly broadcast exclusively to the people who care about an event.
+			if ok && user != nil {
+                // 2. Figure out who else is still in the room
+				s.mu.RLock()
+				// ... lookup loop ...
+				s.mu.RUnlock()
 
----
+                // 3. Emits ActionRemovePeer to every remaining survivor so React can unmount the audio element
+				for _, remainingClientSid := range remainingSockets {
+					s.io.To(socket.Room(remainingClientSid)).Emit(ActionRemovePeer, ...)
+				}
+                // 4. Unsubscribe from the socket channel
+				client.Leave(socket.Room(user.RoomID))
+			}
+		}
 
-## 4. The React Frontend Architecture (`useWebRTC.jsx`)
-
-The logic here handles joining the room and dynamically rendering dynamic `<audio>` elements:
-1. React's `useEffect` mounts exactly once.
-2. It requests microphone permissions via `navigator.mediaDevices.getUserMedia`.
-3. It updates the `clients` array to include your own profile, rendering an `<audio>` tag that is forcefully muted (`volume = 0`) so you don't hear an echo of yourself.
-4. It calls `socket.current.emit(ACTIONS.JOIN)`.
-
-### Upcoming Implementation (Phase 2):
-To complete the voice feature, `useWebRTC.jsx` will need listeners for all the signaling triggers. Every time `ADD_PEER` is received, it will instantiate a new `new RTCPeerConnection(freeStunServers)` instance, attach your microphone tracks to it, and map it into a generic hashmap `connections.current = {}`. This ensures your browser maintains a unique, direct pipeline to *every single* person inside the room simultaneously!
+		client.On(ActionLeave, func(args ...any) { leave() })      // Graceful tab navigation
+		client.On("disconnect", func(args ...any) { leave() }) // Forceful tab close / wifi drops
+```

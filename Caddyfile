@@ -1,0 +1,9 @@
+# Frontend Route
+13.233.102.46.nip.io {
+    reverse_proxy frontend:80
+}
+
+# Backend API Route
+api.13.233.102.46.nip.io {
+    reverse_proxy backend:8080
+}
