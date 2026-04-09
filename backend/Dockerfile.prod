@@ -23,8 +23,7 @@ WORKDIR /app
 # Copy the pre-built binary file from the previous stage
 COPY --from=builder /app/main .
 
-# Copy the .env file if it exists, but typically env vars are passed in via docker-compose
-COPY .env ./
+# COPY .env ./ (Removed: relying on docker-compose env_file or VPS environment instead)
 
 # Expose port (adjust to match your backend port, usually 8080)
 EXPOSE 8080
