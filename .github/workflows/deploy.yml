@@ -14,7 +14,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout Code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
 
             - name: Log in to Docker Hub
               uses: docker/login-action@v3
@@ -23,7 +23,7 @@ jobs:
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
             - name: Build and Push Backend
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                   context: ./backend
                   file: ./backend/Dockerfile.prod
@@ -31,7 +31,7 @@ jobs:
                   tags: ${{ secrets.DOCKERHUB_USERNAME }}/codershouse-backend:latest
 
             - name: Build and Push Frontend
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                   context: ./frontend
                   file: ./frontend/Dockerfile.prod
@@ -44,7 +44,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout Code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
 
             - name: Copy Compose and Caddy files to VPS
               uses: appleboy/scp-action@master
