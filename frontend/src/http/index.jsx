@@ -50,7 +50,8 @@ api.interceptors.response.use(
         ) {
             originalRequest._isRetry = true;
             try {
-                await axios.get(`${import.meta.env.VITE_API_URL}/refresh`, {
+                const apiUrl = window.__ENV__?.API_URL || import.meta.env.VITE_API_URL;
+                await axios.get(`${apiUrl}/refresh`, {
                     withCredentials: true,
                 });
                 return api.request(originalRequest);

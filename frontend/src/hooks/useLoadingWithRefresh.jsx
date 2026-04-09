@@ -11,7 +11,8 @@ export function useLoadingWithRefresh() {
     useEffect(() => {
         (async () => {
             try {
-                const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/refresh`, {
+                const apiUrl = window.__ENV__?.API_URL || import.meta.env.VITE_API_URL;
+                const { data } = await axios.get(`${apiUrl}/refresh`, {
                     withCredentials: true,
                 });
 

@@ -23,7 +23,7 @@ services:
   frontend:
     image: 992019/codershouse-frontend:${IMAGE_TAG:-latest}
     env_file:
-      - .env
+      - .env.frontend
     restart: always
 
 volumes:

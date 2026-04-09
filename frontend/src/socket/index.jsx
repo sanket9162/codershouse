@@ -8,5 +8,6 @@ export const socketInit = () => {
         transports: ["websocket"],
     };
 
-    return io(import.meta.env.VITE_API_URL, options);
+    const apiUrl = window.__ENV__?.API_URL || import.meta.env.VITE_API_URL;
+    return io(apiUrl, options);
 };

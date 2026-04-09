@@ -88,7 +88,8 @@ jobs:
                       EOF
 
                       # 3. Create a .env file for the frontend (to pass to Caddy/Nginx)
-                      echo "VITE_API_URL=https://api.${{ secrets.VPS_IP }}.nip.io" > .env.frontend
+                      echo "API_URL=https://api.${{ secrets.VPS_IP }}.nip.io" > .env.frontend
+                      echo "VITE_API_URL=https://api.${{ secrets.VPS_IP }}.nip.io" >> .env.frontend
 
                       # 4. Pull the brand new images from Docker Hub
                       echo "Pulling latest Docker images..."
