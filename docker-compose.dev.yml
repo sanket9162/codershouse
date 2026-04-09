@@ -2,11 +2,11 @@
 services:
 
   backend:
-    image: coderhouse-backend:1.0.0
+    image: codershouse-backend:1.0.0
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-    container_name: coderhouse-backend-dev
+    container_name: codershouse-backend-dev
     ports:
       - "8080:8080"
     env_file:
@@ -18,11 +18,11 @@ services:
           target: /app
 
   frontend:
-    image: coderhouse-frontend:1.0.0
+    image: codershouse-frontend:1.0.0
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-    container_name: coderhouse-frontend-dev
+    container_name: codershouse-frontend-dev
     ports:
       - "5173:5173"
     depends_on:

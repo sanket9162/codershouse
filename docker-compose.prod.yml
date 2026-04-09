@@ -15,13 +15,13 @@ services:
       - frontend
 
   backend:
-    image: 992019/coderhouse-backend:${IMAGE_TAG:latest}
+    image: 992019/codershouse-backend:${IMAGE_TAG:-latest}
     env_file:
       - .env
     restart: always
 
   frontend:
-    image: 992019/coderhouse-frontend:${IMAGE_TAG:latest}
+    image: 992019/codershouse-frontend:${IMAGE_TAG:-latest}
     env_file:
       - .env
     restart: always

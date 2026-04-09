@@ -9,14 +9,14 @@ services:
     restart: always
 
   backend:
-    image: coderhouse-backend:1.0.0
-    container_name: coderhouse-backend
+    image: codershouse-backend:1.0.0
+    container_name: codershouse-backend
     depends_on:
       - mongo
 
   frontend:
-    image: coderhouse-frontend:1.0.0
-    container_name: coderhouse-frontend
+    image: codershouse-frontend:1.0.0
+    container_name: codershouse-frontend
     depends_on:
       - backend
 
