@@ -1,0 +1,101 @@
+name: Build, Push and Deploy to VPS
+
+on:
+    push:
+        branches: [main]
+    workflow_dispatch:
+
+jobs:
+    #job 1: Build and Push to Docker Hub
+    build-and-push:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+
+            - name: Log in to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Build and Push Backend
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./backend
+                  file: ./backend/Dockerfile.prod
+                  push: true
+                  tags: ${{ secrets.DOCKERHUB_USERNAME }}/codershouse-backend:latest
+
+            - name: Build and Push Frontend
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./frontend
+                  file: ./frontend/Dockerfile.prod
+                  push: true
+                  tags: ${{ secrets.DOCKERHUB_USERNAME}}/codershouse-frontend:latest
+
+    #job 2:Deploy to VPS
+    deploy:
+        needs: build-and-push
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+
+            - name: Copy Compose and Caddy files to VPS
+              uses: appleboy/scp-action@master
+              with:
+                  host: ${{ secrets.VPS_IP }}
+                  username: ${{ secrets.VPS_USER }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  source: "docker-compose.yml,docker-compose.prod.yml,Caddyfile"
+                  target: "~/app"
+
+            # This step SSHs in, creates the .env, and restarts Docker
+            - name: Execute SSH Deployment Commands
+              uses: appleboy/ssh-action@master
+              with:
+                  host: ${{ secrets.VPS_IP }}
+                  username: ${{ secrets.VPS_USER }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  timeout: 120s
+                  script: |
+                      # 1. Navigate to the app directory
+                      cd ~/app
+
+                      # 2. Reconstruct the secure .env file for the Go backend
+                      echo "Creating secure .env file..."
+                      cat <<EOF > .env
+                      PORT=8080
+                      DOMAIN=api.${{ secrets.VPS_IP }}.nip.io
+                      KEY=${{ secrets.KEY }}
+
+                      TWILIO_SID=${{ secrets.TWILIO_SID }}
+                      TWILIO_TOKEN=${{ secrets.TWILIO_TOKEN }}
+                      TWILIO_PHONE=+18303810492
+
+                      DB_URL=mongodb://mongo:27017
+                      DB_NAME=coderhouse
+
+                      JWT_SECRET=${{ secrets.JWT_SECRET }}
+                      JWT_ISSUER=${{ secrets.VPS_IP }}.nip.io
+                      JWT_AUDIENCE=${{ secrets.VPS_IP }}.nip.io
+                      COOKIE_DOMAIN=.${{ secrets.VPS_IP }}.nip.io
+                      EOF
+
+                      # 3. Create a .env file for the frontend (to pass to Caddy/Nginx)
+                      echo "VITE_API_URL=https://api.${{ secrets.VPS_IP }}.nip.io" > .env.frontend
+
+                      # 4. Pull the brand new images from Docker Hub
+                      echo "Pulling latest Docker images..."
+                      docker pull ${{ secrets.DOCKERHUB_USERNAME }}/codershouse-backend:latest
+                      docker pull ${{ secrets.DOCKERHUB_USERNAME }}/codershouse-frontend:latest
+
+                      # 5. Restart the containers using the Base + Prod compose files
+                      echo "Restarting services..."
+                      docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
+                      docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+                      # 6. Clean up old, unused images to save disk space
+                      docker image prune -af
