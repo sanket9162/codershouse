@@ -15,6 +15,8 @@ import (
 	"github.com/sanket9162/codershouse/internal/models"
 	"github.com/sanket9162/codershouse/internal/repository"
 	"github.com/sanket9162/codershouse/internal/utils"
+	"github.com/twilio/twilio-go"
+	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
 )
 
 type Handler struct {
@@ -85,22 +87,22 @@ func (h *Handler) SendOTP(w http.ResponseWriter, r *http.Request) {
 	hash := utils.Encrypt(data, h.App.SecretKey)
 
 	// send OTP using twilio
-	// client := twilio.NewRestClientWithParams(twilio.ClientParams{
-	// 	Username: h.App.TwilioSID,
-	// 	Password: h.App.TwilioToken,
-	// })
+	client := twilio.NewRestClientWithParams(twilio.ClientParams{
+		Username: h.App.TwilioSID,
+		Password: h.App.TwilioToken,
+	})
 
-	// params := &twilioApi.CreateMessageParams{}
-	// params.SetTo(req.Phone)
-	// params.SetFrom(h.App.TwilioPhone)
-	// params.SetBody(fmt.Sprintf("Your coder's house OTP is %d ", otp))
+	params := &twilioApi.CreateMessageParams{}
+	params.SetTo(req.Phone)
+	params.SetFrom(h.App.TwilioPhone)
+	params.SetBody(fmt.Sprintf("Your coder's house OTP is %d ", otp))
 
-	// _, err = client.Api.CreateMessage(params)
-	// if err != nil {
-	// 	h.Logger.Error("Error sending OTP", "error", err)
-	// 	utils.ErrorJSON(w, err, http.StatusInternalServerError)
-	// 	return
-	// }
+	_, err = client.Api.CreateMessage(params)
+	if err != nil {
+		h.Logger.Error("Error sending OTP", "error", err)
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
 
 	h.Logger.Info("OTP Generate,", "otp", otp, "phone", req.Phone)
 
