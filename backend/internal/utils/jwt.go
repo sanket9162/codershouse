@@ -87,7 +87,7 @@ func (j *Auth) GetRefreshCookie(refreshToken string) *http.Cookie {
 		Domain:   j.CookieDomain,
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
 	}
 }
 
@@ -101,7 +101,7 @@ func (j *Auth) GetAccessTokenCookie(accessToken string) *http.Cookie {
 		Domain:   j.CookieDomain,
 		HttpOnly: true,
 		Secure:   true, // Set to false for dev
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
 	}
 }
 
@@ -112,7 +112,7 @@ func (j *Auth) GetExpiredAccessTokenCookie() *http.Cookie {
 		Value:    "",
 		Expires:  time.Unix(0, 0),
 		MaxAge:   -1,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteNoneMode,
 		Domain:   j.CookieDomain,
 		HttpOnly: true,
 		Secure:   true, // Set to true for HTTPS production
@@ -126,7 +126,7 @@ func (j *Auth) GetExpiredRefreshCookie() *http.Cookie {
 		Value:    "",
 		Expires:  time.Unix(0, 0),
 		MaxAge:   -1,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteNoneMode,
 		Domain:   j.CookieDomain,
 		HttpOnly: true,
 		Secure:   true,
