@@ -248,7 +248,9 @@ func (h *Handler) ActivateUser(w http.ResponseWriter, r *http.Request) {
 
 	// build full url for avatar
 	baseURL := "http://localhost:" + h.App.Port
-	// Or use h.App.Config.Domain if it's explicitly set to an absolute URL. Assuming localhost for dev:
+	if h.App.Domain != "" && h.App.Domain != "localhost" {
+		baseURL = "https://" + h.App.Domain
+	}
 
 	user.Name = req.Name
 	user.Avatar = baseURL + avatarPath
