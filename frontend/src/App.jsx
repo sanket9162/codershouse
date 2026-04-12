@@ -10,6 +10,7 @@ import Rooms from './pages/Rooms/Rooms'
 import { useLoadingWithRefresh } from './hooks/useLoadingWithRefresh'
 import Loader from './components/Loader/Loader'
 import Room from './pages/Room/Room'
+import NotFound from './pages/NotFound/NotFound'
 
 function App() {
   const { loading } = useLoadingWithRefresh();
@@ -37,6 +38,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/room/:id" element={<Room />} />
         </Route>
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   )
