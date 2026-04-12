@@ -399,3 +399,8 @@ func (h *Handler) GetRoomById(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJSON(w, http.StatusOK, room)
 }
+
+func (h *Handler) NotFound(w http.ResponseWriter, r *http.Request) {
+	err := errors.New("endpoint not found")
+	utils.ErrorJSON(w, err, http.StatusNotFound)
+}
