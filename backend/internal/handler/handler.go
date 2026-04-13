@@ -377,7 +377,9 @@ func (h *Handler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetAllRooms(w http.ResponseWriter, r *http.Request) {
-	rooms, err := h.DB.GetAllRooms("open")
+	searchQuery := r.URL.Query().Get("search")
+
+	rooms, err := h.DB.GetAllRooms("open", searchQuery)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
