@@ -92,15 +92,19 @@ func (m *MongoRepo) CreateRoom(r *models.Room) error {
 	return nil
 }
 
-func (m *MongoRepo) GetAllRooms(roomType string) ([]models.Room, error) {
+func (m *MongoRepo) GetAllRooms(roomType, searchQuery string) ([]models.Room, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	rooms := []models.Room{}
 	filter := bson.M{}
 
-	if roomType != "all" {
+	if roomType != "all" && roomType != "" {
 		filter["roomType"] = roomType
+	}
+
+	if searchQuery != "" {
+		filter["topic"] = bson.M{"$regex": searchQuery, "$options": "i"}
 	}
 
 	cursor, err := m.DB.Collection("rooms").Find(ctx, filter)
