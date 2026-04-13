@@ -1,21 +1,40 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useReducer } from 'react'
 import RoomCard from '../../components/RoomCard/RoomCard'
 import AddRoomModel from '../../components/AddRoomModel/AddRoomModel'
 import { useState } from 'react'
-import { getAllRooms } from '../../http/index.jsx'
+import { getAllRooms, searchRoomsAPI } from '../../http/index.jsx'
+import useDebounce from '../../hooks/useDebounce.jsx'
 
 const Rooms = () => {
 
   const [showModel, setShowModel] = useState(false)
   const [rooms, setRooms] = useState([])
 
+  const [searchInput, setSearchInput] = useState('')
+  const debouncedSearch = useDebounce(searchInput, 500)
+
+
   useEffect(() => {
-    const fetchRooms = async () => {
-      const { data } = await getAllRooms();
-      setRooms(data)
+    // const fetchRooms = async () => {
+    //   const { data } = await getAllRooms();
+    //   setRooms(data)
+    // }
+    // fetchRooms();
+    const fetchFilteredRooms = async () => {
+      try {
+        if (debouncedSearch) {
+          const { data } = await searchRoomsAPI(debouncedSearch);
+          setRooms(data);
+        } else {
+          const { data } = await getAllRooms();
+          setRooms(data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
     }
-    fetchRooms();
-  }, [])
+    fetchFilteredRooms();
+  }, [debouncedSearch])
 
   function openModel() {
     setShowModel(true)
@@ -29,7 +48,7 @@ const Rooms = () => {
           <span className='font-bold text-xl'>All voices rooms</span>
           <div className='flex items-center gap-2 bg-[#262626] rounded-full px-4 py-2'>
             <img src="/images/search-icon.png" alt="search" />
-            <input type="text" placeholder='Search' className='border-none outline-none bg-transparent text-white' />
+            <input type="text" placeholder='Search' value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className='border-none outline-none bg-transparent text-white' />
           </div>
         </div>
         <div className=''>

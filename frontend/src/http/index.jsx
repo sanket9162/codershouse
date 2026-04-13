@@ -37,6 +37,8 @@ export const getRoomById = (roomId) => {
     return api.get(`/rooms/${roomId}`);
 }
 
+export const searchRoomsAPI = (query) => api.get(`/rooms?search=${query}`);
+
 // interceptors
 api.interceptors.response.use(
     (config) => {
