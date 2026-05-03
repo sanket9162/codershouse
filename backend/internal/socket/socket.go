@@ -27,19 +27,21 @@ type SocketUser struct {
 }
 
 type SocketServer struct {
-	io     *socket.Server
-	logger *slog.Logger
-	mu     sync.RWMutex
-	users  map[socket.SocketId]*SocketUser
+	io        *socket.Server
+	logger    *slog.Logger
+	mu        sync.RWMutex
+	users     map[socket.SocketId]*SocketUser
+	roomUsers map[string]map[socket.SocketId]map[string]interface{}
 }
 
 func NewSocketServer(logger *slog.Logger) *SocketServer {
 	io := socket.NewServer(nil, nil)
 
 	s := &SocketServer{
-		io:     io,
-		logger: logger,
-		users:  make(map[socket.SocketId]*SocketUser),
+		io:        io,
+		logger:    logger,
+		users:     make(map[socket.SocketId]*SocketUser),
+		roomUsers: make(map[string]map[socket.SocketId]map[string]interface{}),
 	}
 
 	s.setupRoutes()
@@ -73,13 +75,17 @@ func (s *SocketServer) setupRoutes() {
 				RoomID: roomId,
 				User:   data,
 			}
+			if s.roomUsers[roomId] == nil {
+				s.roomUsers[roomId] = make(map[socket.SocketId]map[string]interface{})
+			}
+			s.roomUsers[roomId][client.Id()] = data
 			s.mu.Unlock()
 
-			// Get all sockets currently in this room natively
+			// Get all sockets currently in this room efficiently via local map
 			s.mu.RLock()
 			var existingSockets []socket.SocketId
-			for sid, u := range s.users {
-				if u.RoomID == roomId && sid != client.Id() {
+			for sid := range s.roomUsers[roomId] {
+				if sid != client.Id() {
 					existingSockets = append(existingSockets, sid)
 				}
 			}
@@ -88,8 +94,8 @@ func (s *SocketServer) setupRoutes() {
 			for _, existingSocketId := range existingSockets {
 				// Tell existing client about the new client
 				s.mu.RLock()
-				newUserProfile := s.users[client.Id()].User
-				existingUserProfile := s.users[existingSocketId].User
+				newUserProfile := s.roomUsers[roomId][client.Id()]
+				existingUserProfile := s.roomUsers[roomId][existingSocketId]
 				s.mu.RUnlock()
 
 				s.io.To(socket.Room(existingSocketId)).Emit(ActionAddPeer, map[string]interface{}{
@@ -164,6 +170,9 @@ func (s *SocketServer) setupRoutes() {
 			s.mu.Lock()
 			if u, exists := s.users[client.Id()]; exists {
 				u.User["muted"] = true
+				if s.roomUsers[u.RoomID] != nil && s.roomUsers[u.RoomID][client.Id()] != nil {
+					s.roomUsers[u.RoomID][client.Id()]["muted"] = true
+				}
 			}
 			s.mu.Unlock()
 
@@ -189,6 +198,9 @@ func (s *SocketServer) setupRoutes() {
 			s.mu.Lock()
 			if u, exists := s.users[client.Id()]; exists {
 				u.User["muted"] = false
+				if s.roomUsers[u.RoomID] != nil && s.roomUsers[u.RoomID][client.Id()] != nil {
+					s.roomUsers[u.RoomID][client.Id()]["muted"] = false
+				}
 			}
 			s.mu.Unlock()
 
@@ -204,16 +216,20 @@ func (s *SocketServer) setupRoutes() {
 			user, ok := s.users[client.Id()]
 			if ok {
 				delete(s.users, client.Id())
+				if s.roomUsers[user.RoomID] != nil {
+					delete(s.roomUsers[user.RoomID], client.Id())
+					if len(s.roomUsers[user.RoomID]) == 0 {
+						delete(s.roomUsers, user.RoomID)
+					}
+				}
 			}
 			s.mu.Unlock()
 
 			if ok && user != nil {
 				s.mu.RLock()
 				var remainingSockets []socket.SocketId
-				for sid, u := range s.users {
-					if u.RoomID == user.RoomID {
-						remainingSockets = append(remainingSockets, sid)
-					}
+				for sid := range s.roomUsers[user.RoomID] {
+					remainingSockets = append(remainingSockets, sid)
 				}
 				s.mu.RUnlock()
 

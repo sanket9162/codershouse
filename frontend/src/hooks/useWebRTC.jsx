@@ -12,6 +12,7 @@ export const useWebRTC = (roomId, user) => {
     const localMediaStream = useRef(null)
     const socket = useRef(null)
     const clientsRef = useRef([])
+    const remoteStreams = useRef({})
 
     useEffect(() => {
         socket.current = socketInit()
@@ -27,6 +28,14 @@ export const useWebRTC = (roomId, user) => {
 
     const provideRef = (instance, userId) => {
         audioElements.current[userId] = instance
+        if (instance) {
+            if (userId === user.id && localMediaStream.current) {
+                instance.volume = 0
+                instance.srcObject = localMediaStream.current
+            } else if (remoteStreams.current[userId]) {
+                instance.srcObject = remoteStreams.current[userId]
+            }
+        }
     }
 
     const addNewClient = useCallback((newClient, cb) => {
@@ -53,11 +62,15 @@ export const useWebRTC = (roomId, user) => {
                     audio: true,
                 })
                 localMediaStream.current = stream
+                return true
             } catch (error) {
                 console.error('Error accessing media devices.', error)
+                window.alert("Please enable microphone permissions to join the room!")
+                return false
             }
         }
-        startMedia().then(() => {
+        startMedia().then((success) => {
+            if (!success) return;
             addNewClient({ ...user, muted: true }, () => {
                 const localAudio = audioElements.current[user.id]
                 if (localAudio) {
@@ -104,21 +117,11 @@ export const useWebRTC = (roomId, user) => {
 
             // handle new remote stream
             connections.current[peerId].ontrack = ({ streams: [remoteStream] }) => {
+                remoteStreams.current[peerUser.id] = remoteStream
                 addNewClient({ ...peerUser, muted: true }, () => {
                     const remoteAudio = audioElements.current[peerUser.id]
                     if (remoteAudio) {
                         remoteAudio.srcObject = remoteStream
-                    } else {
-                        // Fallback mapping in case DOM React 18 batches ref attachments
-                        let settled = false
-                        let interval = setInterval(() => {
-                            if (audioElements.current[peerUser.id]) {
-                                audioElements.current[peerUser.id].srcObject = remoteStream
-                                settled = true
-                                clearInterval(interval)
-                            }
-                        }, 50)
-                        setTimeout(() => { if (!settled) clearInterval(interval) }, 2000)
                     }
                 })
             }
@@ -262,35 +265,22 @@ export const useWebRTC = (roomId, user) => {
 
     //handling mute
     const handleMute = (isMuted, userId) => {
-        let setted = false
-
-        let interval = setInterval(() => {
-
-            if (localMediaStream.current) {
-                localMediaStream.current.getTracks()[0].enabled = !isMuted
-                if (isMuted) {
-                    socket.current.emit(ACTIONS.MUTE, { roomId, userId })
-                } else {
-                    socket.current.emit(ACTIONS.UNMUTE, { roomId, userId })
-                }
-
-                // Locally update UI since socket.io .To() doesn't loop back to sender
-                const clientIdx = clientsRef.current.map(client => client.id).indexOf(userId)
-                if (clientIdx > -1) {
-                    const connectedClients = [...clientsRef.current]
-                    connectedClients[clientIdx] = { ...connectedClients[clientIdx], muted: isMuted }
-                    setClients(connectedClients)
-                }
-
-                setted = true
+        if (localMediaStream.current) {
+            localMediaStream.current.getTracks()[0].enabled = !isMuted
+            if (isMuted) {
+                socket.current.emit(ACTIONS.MUTE, { roomId, userId })
+            } else {
+                socket.current.emit(ACTIONS.UNMUTE, { roomId, userId })
             }
 
-            if (setted) {
-                clearInterval(interval)
+            // Locally update UI since socket.io .To() doesn't loop back to sender
+            const clientIdx = clientsRef.current.map(client => client.id).indexOf(userId)
+            if (clientIdx > -1) {
+                const connectedClients = [...clientsRef.current]
+                connectedClients[clientIdx] = { ...connectedClients[clientIdx], muted: isMuted }
+                setClients(connectedClients)
             }
-        }, 200)
-
-
+        }
     }
 
     return { clients, provideRef, handleMute }
